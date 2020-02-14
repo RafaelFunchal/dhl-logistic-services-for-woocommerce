@@ -171,16 +171,9 @@ class PR_DHL_WC {
 	public function load_plugin() {
 		// Checks if WooCommerce is installed.
 		if ( class_exists( 'WC_Shipping_Method' ) ) {
-			$this->base_country_code = $this->get_base_country();
-
-			// Load plugin except for DHL Parcel countries
-			$dhl_parcel_countries = array('NL', 'BE', 'LU');
-
-			if (!in_array($this->base_country_code, $dhl_parcel_countries)) {
-				$this->define_constants();
-				$this->includes();
-				$this->init_hooks();
-			}
+            $this->define_constants();
+            $this->includes();
+            $this->init_hooks();
 		} else {
 			// Throw an admin error informing the user this plugin needs WooCommerce to function
 			add_action( 'admin_notices', array( $this, 'notice_wc_required' ) );
@@ -194,8 +187,22 @@ class PR_DHL_WC {
     public function init() {
         add_action( 'admin_notices', array( $this, 'environment_check' ) );
 
-        $this->get_pr_dhl_wc_product();
-        $this->get_pr_dhl_wc_order();
+        $dhl_parcel_countries = array('NL', 'BE', 'LU');
+        $this->base_country_code = $this->get_base_country();
+        $shipping_dhl_settings = $this->get_shipping_dhl_settings();
+
+        // If Benelux AND "enabled" field exists AND is enabled -> Display metaboxes
+        // If NOT Benelux AND "enabled" field NOT exists OR is enabled -> Display metaboxes
+        if ( ( in_array($this->base_country_code, $dhl_parcel_countries) &&
+                    isset( $shipping_dhl_settings['dhl_enabled'] ) &&
+                    ( $shipping_dhl_settings['dhl_enabled'] == 'yes' ) ) ||
+        		( ! in_array($this->base_country_code, $dhl_parcel_countries) &&
+            		( ! isset( $shipping_dhl_settings['dhl_enabled'] ) ||
+                    ( $shipping_dhl_settings['dhl_enabled'] == 'yes' ) ) ) ) {
+
+            $this->get_pr_dhl_wc_product();
+            $this->get_pr_dhl_wc_order();
+        }
     }
 
     public function init_hooks() {

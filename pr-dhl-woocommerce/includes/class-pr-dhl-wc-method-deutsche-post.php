@@ -104,6 +104,17 @@ class PR_DHL_WC_Method_Deutsche_Post extends WC_Shipping_Method {
         $weight_units = get_option( 'woocommerce_weight_unit' );
 
         $this->form_fields = array(
+            'dhl_enabled'                => array(
+                'title'       => __( 'Enable Plugin', 'pr-shipping-dhl' ),
+                'type'        => 'checkbox',
+                'label'       => __( 'Enable', 'pr-shipping-dhl' ),
+                'default'     => 'no',
+                'description' => __(
+                    'Enable the plugin to be able to create labels for orders.',
+                    'pr-shipping-dhl'
+                ),
+                'desc_tip'    => true,
+            ),
             'dhl_api'                    => array(
                 'title'       => __( 'Account and API Settings', 'pr-shipping-dhl' ),
                 'type'        => 'title',
