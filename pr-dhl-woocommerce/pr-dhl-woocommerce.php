@@ -221,6 +221,9 @@ class PR_DHL_WC {
 				if( $dhl_obj->is_dhl_paket() ) {
 					$this->shipping_dhl_order = new PR_DHL_WC_Order_Paket();
 					$this->shipping_dhl_frontend = new PR_DHL_Front_End_Paket();
+				} elseif( $dhl_obj->is_dhl_ecs_us() ) {
+					$this->shipping_dhl_order = new PR_DHL_WC_Order_eCS_US();
+					// $this->shipping_dhl_notice = new PR_DHL_WC_Notice();
 				} elseif( $dhl_obj->is_dhl_ecomm() ) {
 					$this->shipping_dhl_order = new PR_DHL_WC_Order_Ecomm();
 					// $this->shipping_dhl_notice = new PR_DHL_WC_Notice();
@@ -245,6 +248,8 @@ class PR_DHL_WC {
 				
 				if( $dhl_obj->is_dhl_paket() ) {
 					$this->shipping_dhl_product = new PR_DHL_WC_Product_Paket();
+				} elseif( $dhl_obj->is_dhl_ecs_us() ) {
+					$this->shipping_dhl_product = new PR_DHL_WC_Product_Ecomm();
 				} elseif( $dhl_obj->is_dhl_ecomm() ) {
 					$this->shipping_dhl_product = new PR_DHL_WC_Product_Ecomm();
 				}
@@ -300,6 +305,9 @@ class PR_DHL_WC {
 			if( $dhl_obj->is_dhl_paket() ) {
 				$pr_dhl_ship_meth = 'PR_DHL_WC_Method_Paket';
 				$shipping_method['pr_dhl_paket'] = $pr_dhl_ship_meth;
+			} elseif( $dhl_obj->is_dhl_ecs_us() ) {
+				$pr_dhl_ship_meth = 'PR_DHL_WC_Method_eCS_US';
+				$shipping_method['pr_dhl_ecs'] = $pr_dhl_ship_meth;
 			} elseif( $dhl_obj->is_dhl_ecomm() ) {
 				$pr_dhl_ship_meth = 'PR_DHL_WC_Method_Ecomm';
 				$shipping_method['pr_dhl_ecomm'] = $pr_dhl_ship_meth;
@@ -393,7 +401,9 @@ class PR_DHL_WC {
 					return PR_DHL_REST_AUTH_URL;
 				}
 
-			} elseif( $dhl_obj->is_dhl_deutsche_post() ) {
+			} elseif( $dhl_obj->is_dhl_ecs_us() ) {
+				return $dhl_obj->get_api_url();
+            } elseif( $dhl_obj->is_dhl_deutsche_post() ) {
 			    return $dhl_obj->get_api_url();
             }
 			
@@ -413,7 +423,9 @@ class PR_DHL_WC {
 				$dhl_settings = get_option('woocommerce_pr_dhl_paket_settings');
 			} elseif( $dhl_obj->is_dhl_ecomm() ) {
 				$dhl_settings = get_option('woocommerce_pr_dhl_ecomm_settings');
-			} elseif ( $dhl_obj->is_dhl_deutsche_post() ) {
+			} elseif ( $dhl_obj->is_dhl_ecs_us() ) {
+			    $dhl_settings = $dhl_obj->get_settings();
+            } elseif ( $dhl_obj->is_dhl_deutsche_post() ) {
 			    $dhl_settings = $dhl_obj->get_settings();
             }
 
@@ -438,6 +450,8 @@ class PR_DHL_WC {
 			} elseif( $dhl_obj->is_dhl_ecomm() ) {
 				$api_user = $shipping_dhl_settings['dhl_api_key'];
 				$api_pwd = $shipping_dhl_settings['dhl_api_secret'];
+			} elseif( $dhl_obj->is_dhl_ecs_us() ) {
+				list($api_user, $api_pwd) = $dhl_obj->get_api_creds();
 			} elseif( $dhl_obj->is_dhl_deutsche_post() ) {
 			    list($api_user, $api_pwd) = $dhl_obj->get_api_creds();
 			} else {

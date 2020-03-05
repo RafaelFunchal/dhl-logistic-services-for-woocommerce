@@ -32,6 +32,8 @@ class PR_DHL_API_Factory {
 		try {
 			switch ($country_code) {
 				case 'US':
+					$dhl_obj = new PR_DHL_API_eCS_US( $country_code);
+					break;
 				case 'GU':
 				case 'AS':
 				case 'PR':
