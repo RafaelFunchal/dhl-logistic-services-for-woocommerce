@@ -313,12 +313,11 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 		$this->api_client->reset_current_shipping_label();
 		$this->api_client->add_item( $item_info );
 		$this->api_client->update_account_id( $args );
-		$this->api_client->update_pickup_address( $args );
-		$this->api_client->update_shipper_address( $args );
-		$this->api_client->update_shipper_address( $args );
+		$this->api_client->update_consignee_address( $args );
+		$this->api_client->update_return_address( $args );
+		$this->api_client->update_distribution_center( $args );
+		$this->api_client->update_dhl_product_id( $args );
 		$this->api_client->update_access_token();
-		error_log( "test ecs asia" );
-		error_log( print_r( get_option( 'pr_dhl_ecs_asia_label'), true ) );
 		$label_response 	= $this->api_client->create_shipping_label( $order_id );
 		
 		//$this->save_dhl_label_file( 'item', $item_barcode, $label_pdf_data );

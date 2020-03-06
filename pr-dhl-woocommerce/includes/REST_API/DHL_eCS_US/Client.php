@@ -63,30 +63,12 @@ class Client extends API_Client {
 	protected function get_default_label_info() {
 
 		return array(
-			'labelRequest' 	=> array(
-				'hdr' 	=> array(
-					'messageType' 		=> 'LABEL',
-					'messageDateTime' 	=> date( "c", time() ),
-					'messageVersion' 	=> '1.4',
-					'accessToken'		=> '',
-					'messageLanguage' 	=> 'en'
-				),
-				'bd' 	=> array(
-					'pickupAccountId' 	=> '',
-					'soldToAccountId'	=> '',
-					'customerAccountId' => null,
-					'pickupDateTime' 	=> null,
-					'inlineLabelReturn' => null,
-					'handoverMethod' 	=> null,
-					
-					'label' 			=> array(
-						'format' 	=> 'PDF',
-						'layout' 	=> '1x1',
-						'pageSize' 	=> '400x600'
-					)
-					
-				)
-			)
+			'pickup' 				=> '',
+			'distributionCenter' 	=> '',
+			'orderedProductId'		=> '',
+			'consigneeAddress' 		=> array(),
+			'returnAddress' 		=> array(),
+			'packageDetail' 		=> array(),
 		);
 	}
 
@@ -101,13 +83,13 @@ class Client extends API_Client {
 	 */
 	public function get_shipping_label($orderId = null)
 	{
-		$current = get_option( 'pr_dhl_ecs_asia_label', $this->get_default_label_info() );
+		$current = get_option( 'pr_dhl_ecs_us_label', $this->get_default_label_info() );
 
 		if (empty($orderId)) {
 			return $current;
 		}
 
-		return get_option( 'pr_dhl_ecs_asia_label_' . $orderId, $current );
+		return get_option( 'pr_dhl_ecs_us_label_' . $orderId, $current );
 	}
 
 	/**
@@ -153,76 +135,112 @@ class Client extends API_Client {
 
 		$label = $this->get_shipping_label();
 
-		$label['labelRequest']['bd']['pickupAccountId'] = $settings['dhl_pickup_id'];
-		$label['labelRequest']['bd']['soldToAccountId'] = $settings['dhl_soldto_id'];
+		$label['pickup'] = $settings['dhl_pickup_id'];
 
-		update_option( 'pr_dhl_ecs_asia_label', $label );
+		update_option( 'pr_dhl_ecs_us_label', $label );
 	}
 
 	/**
-	 * Update pickup address data from the settings
+	 * Update consignee address data from the settings
 	 *
 	 * @since [*next-version*]
 	 *
 	 * @param array $args The arguments to parse.
 	 *
 	 */
-	public function update_pickup_address( $args ){
+	public function update_consignee_address( $args ){
 
 		$settings = $args[ 'dhl_settings' ];
 
-		$pickup_address =  array(
-			"name" 		=> $settings['dhl_contact_name'],
-			"address1" 	=> $settings['dhl_address_1'],
-			"address2" 	=> $settings['dhl_address_2'],
-			"city" 		=> $settings['dhl_city'],
-			"state" 	=> $settings['dhl_state'],
-			"district" 	=> $settings['dhl_district'],
-			"country" 	=> $settings['dhl_country'],
-			"postCode" 	=> $settings['dhl_postcode'],
-			"phone"		=> $settings['dhl_phone'],
-			"email" 	=> $settings['dhl_email']	
+		$consignee_address =  array(
+			"name" 			=> $settings['dhl_contact_name'],
+			"companyName" 	=> $settings['dhl_contact_name'],
+			"address1" 		=> $settings['dhl_address_1'],
+			"address2" 		=> $settings['dhl_address_2'],
+			"city" 			=> $settings['dhl_city'],
+			"state" 		=> $settings['dhl_state'],
+			"country" 		=> $settings['dhl_country'],
+			"postalCode" 	=> $settings['dhl_postcode'],
+			"phone"			=> $settings['dhl_phone'],
+			"email" 		=> $settings['dhl_email']	
 		);
 
 		$label = $this->get_shipping_label();
 
-		$label['labelRequest']['bd']['pickupAddress'] = $pickup_address;
-		$label['labelRequest']['bd']['pickupAddress'] = null; //testing
-		update_option( 'pr_dhl_ecs_asia_label', $label );
+		$label['consigneeAddress'] = $consignee_address;
+		update_option( 'pr_dhl_ecs_us_label', $label );
 
 
 	}
 
 	/**
-	 * Update shipper address data from the settings
+	 * Update return address data from the settings
 	 *
 	 * @since [*next-version*]
 	 *
 	 * @param array $args The arguments to parse.
 	 *
 	 */
-	public function update_shipper_address( $args ){
+	public function update_return_address( $args ){
 
 		$settings = $args[ 'dhl_settings' ];
 
-		$shipper_address =  array(
-			"name" 		=> $settings['dhl_contact_name'],
-			"address1" 	=> $settings['dhl_address_1'],
-			"address2" 	=> $settings['dhl_address_2'],
-			"city" 		=> $settings['dhl_city'],
-			"state" 	=> $settings['dhl_state'],
-			"district" 	=> $settings['dhl_district'],
-			"country" 	=> $settings['dhl_country'],
-			"postCode" 	=> $settings['dhl_postcode'],
-			"phone"		=> $settings['dhl_phone'],
-			"email" 	=> $settings['dhl_email']	
+		$return_address =  array(
+			"name" 			=> $settings['dhl_contact_name'],
+			"companyName" 	=> $settings['dhl_contact_name'],
+			"address1" 		=> $settings['dhl_address_1'],
+			"address2" 		=> $settings['dhl_address_2'],
+			"city" 			=> $settings['dhl_city'],
+			"state" 		=> $settings['dhl_state'],
+			"country" 		=> $settings['dhl_country'],
+			"postalCode" 	=> $settings['dhl_postcode'],
+			"phone"			=> $settings['dhl_phone'],
+			"email" 		=> $settings['dhl_email']	
 		);
 
 		$label = $this->get_shipping_label();
 
-		$label['labelRequest']['bd']['shipperAddress'] = $shipper_address;
-		$label['labelRequest']['bd']['shipperAddress'] = null; //testing
-		update_option( 'pr_dhl_ecs_asia_label', $label );
+		$label['returnAddress'] = $return_address;
+		update_option( 'pr_dhl_ecs_us_label', $label );
+
+	}
+
+	/**
+	 * Update distribution center from the settings
+	 *
+	 * @since [*next-version*]
+	 *
+	 * @param array $args The arguments to parse.
+	 *
+	 */
+	public function update_distribution_center( $args ){
+
+		$settings = $args[ 'dhl_settings' ];
+
+		$label = $this->get_shipping_label();
+
+		$label['distributionCenter'] = $settings['dhl_distribution_center'];
+		update_option( 'pr_dhl_ecs_us_label', $label );
+
+	}
+
+	/**
+	 * Update ordered dhl product id from the settings
+	 *
+	 * @since [*next-version*]
+	 *
+	 * @param array $args The arguments to parse.
+	 *
+	 */
+	public function update_dhl_product_id( $args ){
+
+		$settings = $args[ 'dhl_settings' ];
+
+		$label = $this->get_shipping_label();
+
+		$label['orderedProductId'] = $settings['dhl_product_id'];
+		
+		update_option( 'pr_dhl_ecs_us_label', $label );
 
 	}
 
@@ -242,7 +260,7 @@ class Client extends API_Client {
 
 		$label['labelRequest']['bd']['shipmentItems' ][] = $item_info->item;
 
-		update_option( 'pr_dhl_ecs_asia_label', $label );
+		update_option( 'pr_dhl_ecs_us_label', $label );
 
 	}
 
@@ -260,7 +278,7 @@ class Client extends API_Client {
 
 		$label['labelRequest']['hdr']['accessToken'] = $token->token;
 
-		update_option( 'pr_dhl_ecs_asia_label', $label );
+		update_option( 'pr_dhl_ecs_us_label', $label );
 
 	}
 
@@ -271,7 +289,7 @@ class Client extends API_Client {
 	 */
 	public function reset_current_shipping_label(){
 
-		update_option( 'pr_dhl_ecs_asia_label', $this->get_default_label_info() );
+		update_option( 'pr_dhl_ecs_us_label', $this->get_default_label_info() );
 
 	}
 
