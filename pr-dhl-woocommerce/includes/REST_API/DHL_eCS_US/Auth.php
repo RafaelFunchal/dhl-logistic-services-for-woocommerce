@@ -166,16 +166,19 @@ class Auth implements API_Auth_Interface {
 		
 		$params 	= array();
 
-		$post_body 	= 'grant_type=client_credentials';
+		$post_body 	= array(
+			'grant_type' 	=> 'client_credentials'
+		);
 		
 		// Send the authorization request to obtain the access token
 		$request = new Request( Request::TYPE_POST, $req_url, $params, $post_body, $headers );
-		error_log( print_r( $request, true ) );
+
 		$response = $this->driver->send( $request );
 		error_log( print_r( $response, true ) );
 		// If the status code is not 200, throw an error with the raw response body
 		if ( $response->status !== 200 ) {
-			throw new RuntimeException( $response->body->error_description );
+			$error 	= json_decode( $response->body );
+			throw new RuntimeException( $error->title  );
 		}
 
 		$token_response 	= json_decode( $response->body );
