@@ -83,8 +83,6 @@ class Item_Info {
 
 		$this->update_item( $args );
 		$this->update_total_weight_dimensions( $args );
-		$this->update_item_consignee_address( $args );
-		$this->update_item_return_address( $args );
 		$this->update_item_shipment_pieces( $args );
 		$this->update_item_shipment_contents( $args );
 	}
@@ -193,72 +191,6 @@ class Item_Info {
 		$item["deliveryOption"] 	= "C"; // only supported C
 
 		$this->item = array_merge( $this->item, $item );
-	}
-
-	/**
-	 * Update consignee address data in the item
-	 * 
-	 * @since [*next-version*]
-	 * 
-	 * @param Array $args
-	 * 
-	 */
-	public function update_item_consignee_address( $args ){
-
-		$item 		= $this->item;
-		$order_id 	= $args[ 'order_details' ][ 'order_id' ];
-		$order 		= wc_get_order( $order_id );
-		$address 	= $this->order_address( $order_id );
-		$user 		= get_user_by( 'ID', $order->get_customer_id() );
-		$id_number 	= $user->user_login . '-' . $order->get_customer_id();
-
-		$item["consigneeAddress"] = array(
-			"name" 		=> $address['name'],
-			"address1" 	=> $address['address1'],
-			"address2" 	=> $address['address2'],
-			"city" 		=> $address['city'],
-			"state" 	=> $address['state'],
-			"district" 	=> $address['state'],
-			"country" 	=> $address['country'],
-			"postCode" 	=> $address['postcode'],
-			"phone"		=> $order->get_billing_phone(),
-			"email" 	=> $order->get_billing_email(),
-			"idNumber" 	=> $id_number,
-			"idType" 	=> "4"
-		);
-
-		$this->item = array_merge( $this->item, $item );
-
-	}
-
-	/**
-	 * Update consignee address data in the item
-	 * 
-	 * @since [*next-version*]
-	 * 
-	 * @param Array $args
-	 * 
-	 */
-	public function update_item_return_address( $args ){
-
-		$item 		= $this->item;
-		$settings 	= $args[ 'dhl_settings' ];
-		
-		$item["returnAddress"] = array(
-			"name" 		=> $settings['dhl_contact_name'],
-			"address1" 	=> $settings['dhl_address_1'],
-			"address2" 	=> $settings['dhl_address_2'],
-			"city" 		=> $settings['dhl_city'],
-			"state" 	=> $settings['dhl_state'],
-			"district" 	=> $settings['dhl_district'],
-			"country" 	=> $settings['dhl_country'],
-			"postCode" 	=> $settings['dhl_postcode'],
-			"phone"		=> $settings['dhl_phone'],
-			"email" 	=> $settings['dhl_email'],	
-		);
-
-		$this->item = array_merge( $this->item, $item );
-
 	}
 
 	/**

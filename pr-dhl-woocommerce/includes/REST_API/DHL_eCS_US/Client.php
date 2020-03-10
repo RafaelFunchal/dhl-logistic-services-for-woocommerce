@@ -73,6 +73,21 @@ class Client extends API_Client {
 	}
 
 	/**
+	 * Get Default value for the international label info 
+	 * 
+	 * @return array
+	 */
+	protected function get_default_intl_label_info() {
+
+		$label_info 					= $this->get_default_label_info();
+
+		$label_info['pickupAddress'] 	= array();
+		$label_info['shipperAddress'] 	= array();
+		
+		return $label_info;
+	}
+
+	/**
 	 * Retrieves the current DHL order, or an existing one if an ID is given.
 	 *
 	 * @since [*next-version*]
@@ -187,9 +202,9 @@ class Client extends API_Client {
 
 		$return_address =  array(
 			"name" 			=> $settings['dhl_contact_name'],
-			"companyName" 	=> $settings['dhl_contact_name'],
 			"address1" 		=> $settings['dhl_address_1'],
 			"address2" 		=> $settings['dhl_address_2'],
+			"address3" 		=> '',
 			"city" 			=> $settings['dhl_city'],
 			"state" 		=> $settings['dhl_state'],
 			"country" 		=> $settings['dhl_country'],
@@ -201,6 +216,113 @@ class Client extends API_Client {
 		$label = $this->get_shipping_label();
 
 		$label['returnAddress'] = $return_address;
+		update_option( 'pr_dhl_ecs_us_label', $label );
+
+	}
+
+	/**
+	 * Update pickup address data from the settings
+	 *
+	 * @since [*next-version*]
+	 *
+	 * @param array $args The arguments to parse.
+	 *
+	 */
+	public function update_pickup_address( $args ){
+
+		$settings = $args[ 'dhl_settings' ];
+
+		if( isset( $settings['dhl_contact_name'] ) && !empty( $settings['dhl_contact_name'] ) ){
+			$store_name 	= $settings['dhl_contact_name'];
+		}else{
+			$store_name 	= get_bloginfo('name');
+		}
+
+		// The main address pieces:
+		$store_address     = get_option( 'woocommerce_store_address' );
+		$store_address_2   = get_option( 'woocommerce_store_address_2' );
+		$store_city        = get_option( 'woocommerce_store_city' );
+		$store_postcode    = get_option( 'woocommerce_store_postcode' );
+
+		// The country/state
+		$store_raw_country = get_option( 'woocommerce_default_country' );
+
+		// Split the country/state
+		$split_country = explode( ":", $store_raw_country );
+
+		// Country and state separated:
+		$store_country = $split_country[0];
+		$store_state   = $split_country[1];
+
+		$address =  array(
+			"name" 			=> $store_name,
+			"address1" 		=> $store_address,
+			"address2" 		=> $store_address_2,
+			"address3" 		=> '',
+			"city" 			=> $store_city,
+			"state" 		=> $store_state,
+			"country" 		=> $store_country,
+			"postalCode" 	=> $store_postcode,
+		);
+
+		$label = $this->get_shipping_label();
+
+		$label['pickupAddress'] = $address;
+		update_option( 'pr_dhl_ecs_us_label', $label );
+
+
+	}
+
+	/**
+	 * Update shipper address data from the settings
+	 *
+	 * @since [*next-version*]
+	 *
+	 * @param array $args The arguments to parse.
+	 *
+	 */
+	public function update_shipper_address( $args ){
+
+		$settings = $args[ 'dhl_settings' ];
+
+		if( isset( $settings['dhl_contact_name'] ) && !empty( $settings['dhl_contact_name'] ) ){
+			$store_name 	= $settings['dhl_contact_name'];
+		}else{
+			$store_name 	= get_bloginfo('name');
+		}
+
+		// The main address pieces:
+		$store_address     = get_option( 'woocommerce_store_address' );
+		$store_address_2   = get_option( 'woocommerce_store_address_2' );
+		$store_city        = get_option( 'woocommerce_store_city' );
+		$store_postcode    = get_option( 'woocommerce_store_postcode' );
+
+		// The country/state
+		$store_raw_country = get_option( 'woocommerce_default_country' );
+
+		// Split the country/state
+		$split_country = explode( ":", $store_raw_country );
+
+		// Country and state separated:
+		$store_country = $split_country[0];
+		$store_state   = $split_country[1];
+
+		$settings = $args[ 'dhl_settings' ];
+
+		$address =  array(
+			"name" 			=> $store_name,
+			"address1" 		=> $store_address,
+			"address2" 		=> $store_address_2,
+			"address3" 		=> '',
+			"city" 			=> $store_city,
+			"state" 		=> $store_state,
+			"country" 		=> $store_country,
+			"postalCode" 	=> $store_postcode,
+		);
+
+		$label = $this->get_shipping_label();
+
+		$label['shipperAddress'] = $address;
 		update_option( 'pr_dhl_ecs_us_label', $label );
 
 	}
@@ -245,6 +367,80 @@ class Client extends API_Client {
 	}
 
 	/**
+	 * Update package details from the settings
+	 *
+	 * @since [*next-version*]
+	 *
+	 * @param array $args The arguments to parse.
+	 *
+	 */
+	public function update_package_details( $args ){
+
+		$settings = $args[ 'dhl_settings' ];
+
+		$label = $this->get_shipping_label();
+
+		$label['orderedProductId'] = $settings['dhl_product_id'];
+		
+		update_option( 'pr_dhl_ecs_us_label', $label );
+
+	}
+
+	/**
+	 * Add all items to the current label.
+	 *
+	 * @since [*next-version*]
+	 *
+	 * @param Item_Info $item_info The information of the item to be created.
+	 *
+	 * @return stdClass The item information as returned by the remote API.
+	 *
+	 */
+	public function add_items( array $args ) {
+
+		$label = $this->get_shipping_label();
+
+		$order_id 		= $args[ 'order_details' ][ 'order_id' ];
+		$order 			= wc_get_order( $order_id );
+
+		// The country/state
+		$store_raw_country = get_option( 'woocommerce_default_country' );
+
+		// Split the country/state
+		$split_country = explode( ":", $store_raw_country );
+
+		// Country and state separated:
+		$store_country = $split_country[0];
+		
+		$total_weight 	= 0;
+		$total_height 	= 0;
+		$total_width 	= 0;
+		$total_length 	= 0;
+
+		foreach( $order->get_items() as $item_id => $item_line ){
+
+			$item 			= array();
+			$product_id 	= $item_line->get_product_id();
+			$product 		= wc_get_product( $product_id );
+			
+			$quantity 		= $item_line->get_quantity();
+
+			$item['itemDescription'] 	= $product->get_name();
+			$item['countryOfOrigin'] 	= $store_country;
+			$item['hsCode'] 			= '';
+			$item['packagedQuantity'] 	= $quantity;
+			$item['skuNumber'] 			= $product->get_sku();
+			$item['itemValue'] 			= $item_line->get_total();
+			$item['currency'] 			= get_woocommerce_currency();
+			
+			$label['customsDetails'][] = $item;
+		}
+
+		update_option( 'pr_dhl_ecs_us_label', $label );
+
+	}
+
+	/**
 	 * Add an item to the current.
 	 *
 	 * @since [*next-version*]
@@ -258,7 +454,7 @@ class Client extends API_Client {
 
 		$label = $this->get_shipping_label();
 
-		$label['labelRequest']['bd']['shipmentItems' ][] = $item_info->item;
+		$label['customsDetails'][] = $item_info->item;
 
 		update_option( 'pr_dhl_ecs_us_label', $label );
 

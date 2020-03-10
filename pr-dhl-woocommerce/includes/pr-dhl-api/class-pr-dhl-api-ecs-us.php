@@ -311,7 +311,7 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 
 		// Create the shipping label
 		$this->api_client->reset_current_shipping_label();
-		$this->api_client->add_item( $item_info );
+		$this->api_client->add_items( $args );
 		$this->api_client->update_account_id( $args );
 		$this->api_client->update_consignee_address( $args );
 		$this->api_client->update_return_address( $args );
