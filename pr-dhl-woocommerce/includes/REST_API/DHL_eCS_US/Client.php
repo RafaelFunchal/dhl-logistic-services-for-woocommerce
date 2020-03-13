@@ -43,6 +43,15 @@ class Client extends API_Client {
 	protected $shipper_address;
 
 	/**
+	 * The default weight unit of measure.
+	 *
+	 * @since [*next-version*]
+	 *
+	 * @var array
+	 */
+	protected $weight_uom;
+
+	/**
 	 * {@inheritdoc}
 	 *
 	 * @since [*next-version*]
@@ -53,6 +62,7 @@ class Client extends API_Client {
 		parent::__construct( $base_url, $driver, $auth );
 
 		$this->auth 		= $auth;
+		$this->weight_uom 	= get_option('woocommerce_weight_unit');
 	}
 
 	/**
@@ -380,10 +390,70 @@ class Client extends API_Client {
 
 		$label = $this->get_shipping_label();
 
-		$label['orderedProductId'] = $settings['dhl_product_id'];
+		$order_id 		= $args[ 'order_details' ][ 'order_id' ];
+		$order 			= wc_get_order( $order_id );
+
+		$weight_uom 	= $this->get_weight_uom();
+		$currency 		= $order->get_currency();
+		$shipping_total = $order->get_shipping_total();
+
+		$total_weight 	= 0;
+
+		foreach( $order->get_items() as $item_id => $item_line ){
+
+			$product_id 	= $item_line->get_product_id();
+			$product 		= wc_get_product( $product_id );
+
+			$quantity 		= $item_line->get_quantity();
+
+			$weight 		= absint( $product->get_weight() ) < 1? 1 : absint( $product->get_weight() );
+
+			$total_weight 	+= ( $weight * $quantity );
+		
+		}
+
+		$label['packageDetail'] = array(
+			'packageId' 			=> '',
+			'packageDescription' 	=> '',
+			'weight' 				=> array(
+				"value" 			=> $total_weight,
+				'unitOfMeasure' 	=> $weight_uom
+			),
+			'service' 				=> 'DELCON',
+			'serviceEndorsement' 	=> 1,
+			'billingReference1' 	=> '',
+			'billingReference2' 	=> '',
+			'shippingCost' 			=> array(
+				'currency' 			=> $currency,
+				'freight' 			=> 0,
+				'declaredValue' 	=> $shipping_total,
+				'insuredValue' 		=> $shipping_total,
+				'dutiesPaid' 		=> false
+			)
+		);
 		
 		update_option( 'pr_dhl_ecs_us_label', $label );
 
+	}
+
+	/**
+	 * Get weight unit of measure.
+	 *
+	 * @since [*next-version*]
+	 *
+	 * @return String.
+	 *
+	 */
+	public function get_weight_uom(){
+
+		$weight 	= strtoupper( $this->weight_uom );
+
+		if( $weight == 'LBS' ){
+			$weight = 'LB';
+		}
+
+		return $weight;
+		
 	}
 
 	/**

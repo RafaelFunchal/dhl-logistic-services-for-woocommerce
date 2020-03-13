@@ -317,6 +317,7 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 		$this->api_client->update_return_address( $args );
 		$this->api_client->update_distribution_center( $args );
 		$this->api_client->update_dhl_product_id( $args );
+		$this->api_client->update_package_details( $args );
 		$this->api_client->update_access_token();
 		$label_response 	= $this->api_client->create_shipping_label( $order_id );
 		
