@@ -5,7 +5,7 @@
  * Description: WooCommerce integration for DHL eCommerce, DHL Paket, DHL Parcel Europe (Benelux and Iberia) and Deutsche Post International
  * Author: DHL
  * Author URI: http://dhl.com/woocommerce
- * Version: 1.6.5
+ * Version: 1.6.6
  * WC requires at least: 2.6.14
  * WC tested up to: 4.0
  *
@@ -32,7 +32,7 @@ if ( ! class_exists( 'PR_DHL_WC' ) ) :
 
 class PR_DHL_WC {
 
-	private $version = "1.6.5";
+	private $version = "1.6.6";
 
 	/**
 	 * Instance to call certain functions globally within the plugin
@@ -272,7 +272,27 @@ class PR_DHL_WC {
 	}
 
 	public function dhl_theme_enqueue_styles() {
-		wp_enqueue_style( 'wc-shipment-dhl-label-css', PR_DHL_PLUGIN_DIR_URL . '/assets/css/pr-dhl-admin.css' );
+        $screen    = get_current_screen();
+        $screen_id = $screen ? $screen->id : '';
+
+        if ( 'woocommerce_page_wc-settings' === $screen_id ) {
+            wp_enqueue_style( 'wc-shipment-dhl-label-css', PR_DHL_PLUGIN_DIR_URL . '/assets/css/pr-dhl-admin.css' );
+
+            $test_con_data = array(
+                'ajax_url'       => admin_url( 'admin-ajax.php' ),
+                'loader_image'   => admin_url( 'images/loading.gif' ),
+                'test_con_nonce' => wp_create_nonce( 'pr-dhl-test-con' ),
+            );
+
+            wp_enqueue_script(
+                'wc-shipment-dhl-testcon-js',
+                PR_DHL_PLUGIN_DIR_URL . '/assets/js/pr-dhl-test-connection.js',
+                array( 'jquery' ),
+                PR_DHL_VERSION
+            );
+            wp_localize_script( 'wc-shipment-dhl-testcon-js', 'dhl_test_con_obj', $test_con_data );
+        }
+
 	}
 
 	/**
@@ -312,7 +332,7 @@ class PR_DHL_WC {
 				$shipping_method['pr_dhl_ecomm'] = $pr_dhl_ship_meth;
 			} elseif( $dhl_obj->is_dhl_deutsche_post() ) {
 				$pr_dhl_ship_meth = 'PR_DHL_WC_Method_Deutsche_Post';
-				$shipping_method['pr_dhl_ecomm'] = $pr_dhl_ship_meth;
+				$shipping_method['pr_dhl_dp'] = $pr_dhl_ship_meth;
 			}
 
 		} catch (Exception $e) {
