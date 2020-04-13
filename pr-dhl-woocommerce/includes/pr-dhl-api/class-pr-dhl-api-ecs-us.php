@@ -278,25 +278,6 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 	 * @since [*next-version*]
 	 */
 	public function get_dhl_label( $args ) {
-		$args[ 'dhl_settings' ]['dhl_contact_name'] 	= 'test';
-		$args[ 'dhl_settings' ]['dhl_address_1'] 		= 'Petronas Twin Towers';
-		$args[ 'dhl_settings' ]['dhl_address_2'] 		= 'Kuala Lumpur City Centre';
-		$args[ 'dhl_settings' ]['dhl_city'] 			= 'Kuala Lumpur';
-		$args[ 'dhl_settings' ]['dhl_state'] 			= 'KLumpur';
-		$args[ 'dhl_settings' ]['dhl_district'] 		= 'KLumpur';
-		$args[ 'dhl_settings' ]['dhl_country'] 			= 'MY';
-		$args[ 'dhl_settings' ]['dhl_postcode'] 		= '50088';
-		$args[ 'dhl_settings' ]['dhl_phone'] 			= '1212121212';
-		$args[ 'dhl_settings' ]['dhl_email'] 			= 'test@email.com';
-
-		$args[ 'dhl_settings' ]['dhl_label_ref']		= 'test';
-		$args[ 'dhl_settings' ]['dhl_label_ref_2']		= 'test2';
-		$args[ 'dhl_settings' ]['dhl_default_product_int'] = 'PDO';
-		$args[ 'dhl_settings' ]['dhl_remarks'] = 'test remarks';
-
-		$args[ 'dhl_settings' ]['dhl_pickup_id'] 		= '5999999108';
-		$args[ 'dhl_settings' ]['dhl_soldto_id']		= '5999999108';
-		$settings = $args[ 'dhl_settings' ];
 
 		$order_id = isset( $args[ 'order_details' ][ 'order_id' ] )
 			? $args[ 'order_details' ][ 'order_id' ]
@@ -306,28 +287,31 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 		try {
 			$item_info = new Item_Info( $args, $uom );
 		} catch (Exception $e) {
+
 			throw $e;
 		}
 
 		// Create the shipping label
-		$this->api_client->reset_current_shipping_label();
-		$this->api_client->add_items( $args );
-		$this->api_client->update_account_id( $args );
-		$this->api_client->update_consignee_address( $args );
-		$this->api_client->update_return_address( $args );
-		$this->api_client->update_distribution_center( $args );
-		$this->api_client->update_dhl_product_id( $args );
-		$this->api_client->update_package_details( $args );
-		$this->api_client->update_access_token();
-		$label_response 	= $this->api_client->create_shipping_label( $order_id );
+		$label_response 	= $this->api_client->create_label( $item_info );
+		$label_package_id 	= $label_response->labels[0]->packageId;
+		$dhl_package_id 	= $label_response->labels[0]->dhlPackageId;
+		$label_data 		= base64_decode( $label_response->labels[0]->labelData );
+		$tracking_id 		= $label_response->labels[0]->trackingId;
+
+		$item_file_info 	= $this->save_dhl_label_file( 'item', $label_package_id, $label_data );
+
+		// Save it in the order
+		update_post_meta( $order_id, 'pr_dhl_ecsus_tracking_id', $tracking_id );
+		update_post_meta( $order_id, 'pr_dhl_ecsus_package_id', $label_package_id );
 		
 		//$this->save_dhl_label_file( 'item', $item_barcode, $label_pdf_data );
 
 		return array(
-			'label_path' => '',
-			'item_barcode' => '',
-			'tracking_number' => '',
-			'tracking_status' => '',
+			'label_path' 			=> $item_file_info->path,
+			'label_url' 			=> $item_file_info->url,
+			'package_id' 			=> $label_package_id,
+			'dhl_package_id' 		=> $dhl_package_id,
+			'tracking_id' 			=> $tracking_id,
 		);
 	}
 

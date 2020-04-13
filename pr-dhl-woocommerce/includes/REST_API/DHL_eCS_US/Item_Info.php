@@ -22,15 +22,6 @@ class Item_Info {
 	public $order_id;
 
 	/**
-	 * The array of order recipient information.
-	 *
-	 * @since [*next-version*]
-	 *
-	 * @var array
-	 */
-	public $item;
-
-	/**
 	 * The array of shipment information.
 	 *
 	 * @since [*next-version*]
@@ -38,15 +29,24 @@ class Item_Info {
 	 * @var array
 	 */
 	public $shipment;
-	
+
 	/**
-	 * The array of order recipient information.
+	 * The array of consignee information sub-arrays.
 	 *
 	 * @since [*next-version*]
 	 *
-	 * @var array
+	 * @var array[]
 	 */
-	public $recipient;
+	public $consignee;
+
+	/**
+	 * The array of shipper information sub-arrays.
+	 *
+	 * @since [*next-version*]
+	 *
+	 * @var array[]
+	 */
+	public $shipper;
 
 	/**
 	 * The array of content item information sub-arrays.
@@ -79,12 +79,8 @@ class Item_Info {
 	public function __construct( $args, $uom ) {
 		//$this->parse_args( $args );
 		$this->weightUom 	= $uom;
-		$this->item 		= $this->get_default_item_info();
-
-		$this->update_item( $args );
-		$this->update_total_weight_dimensions( $args );
-		$this->update_item_shipment_pieces( $args );
-		$this->update_item_shipment_contents( $args );
+		$this->crossBorder 	= PR_DHL()->is_crossborder_shipment( $args['shipping_address']['country'] );
+		$this->parse_args( $args, $uom );
 	}
 
 	/**
@@ -101,265 +97,286 @@ class Item_Info {
 		$recipient_info = $args[ 'shipping_address' ] + $settings;
 		$shipping_info = $args[ 'order_details' ] + $settings;
 		$items_info = $args['items'];
+		
+		$this->shipment 		= Args_Parser::parse_args( $shipping_info, $this->get_shipment_info_schema() );
+		$this->consignee 		= Args_Parser::parse_args( $recipient_info, $this->get_recipient_info_schema() );
+		$this->shipper 			= Args_Parser::parse_args( $settings, $this->get_shipper_info_schema() );
+		$this->contents 		= array();
 
-		/*
-		$this->order 		= $args[ 'order_details' ][ 'order_id' ];
-		$this->shipment 	= Args_Parser::parse_args( $shipping_info, $this->get_shipment_info_schema() );
-		$this->recipient 	= Args_Parser::parse_args( $recipient_info, $this->get_recipient_info_schema() );
-		$this->contents 	= array();
-
-		$this->contents = array();
 		foreach ( $items_info as $item_info ) {
 			$this->contents[] = Args_Parser::parse_args( $item_info, $this->get_content_item_info_schema() );
 		}
-		*/
 	}
 
 	/**
-	 * Get Default value for the label info 
-	 * 
+	 * Retrieves the args scheme to use with {@link Args_Parser} for base item info.
+	 *
+	 * @since [*next-version*]
+	 *
 	 * @return array
 	 */
-	protected function get_default_item_info() {
+	protected function get_shipment_info_schema() {
+
+		// Closures in PHP 5.3 do not inherit class context
+		// So we need to copy $this into a lexical variable and pass it to closures manually
+		$self = $this;
 
 		return array(
-			"consigneeAddress" 			=> array(),
-			"returnAddress" 			=> array(),
-			"shipmentID" 				=> "",
-			"deliveryConfirmationNo" 	=> "",
-			"packageDesc" 				=> "",
-			"totalWeight" 				=> 0.0,
-			"totalWeightUOM" 			=> "G",
-			"dimensionUOM" 				=> "cm",
-			"height" 					=> 0.0,
-			"length" 					=> 0.0,
-			"width" 					=> 0.0,
-			"productCode" 				=> "PDO",
-			"totalValue" 				=> "",
-			"currency" 					=> "",
-			"isMult"					=> "true",
-			"deliveryOption"			=> "P",
-			"shipmentPieces" 			=> array(),
-		);
-	}
+			'order_id'      => array(
+				'error'  => __( 'Shipment "Order ID" is empty!', 'pr-shipping-dhl' ),
+			),
+			'prefix' 		=> array(
+				'default' => 'DHL'
+			),
+			'pickup_id' 		=> array(
+				'error'  => __( 'Shipment "Pickup ID" is empty!', 'pr-shipping-dhl' ),
+			),
+			'distribution_center' => array(
+				'error'  => __( 'Shipment "Distribution Center" is empty!', 'pr-shipping-dhl' ),
+			),
+			'weight'     => array(
+				'sanitize' => function ( $weight ) use ($self) {
 
-	/**
-	 * Update item data
-	 * 
-	 * @since [*next-version*]
-	 * 
-	 * @param Array $args
-	 * 
-	 */
-	public function update_item( $args ){
+					$weight = $self->maybe_convert_to_grams( $weight, $self->weightUom );
+					$weight = ( $weight > 1 )? $weight : 1;
+					return $weight;
+				}
+			),
+			'weightUom'  => array(
+				'sanitize' => function ( $uom ) use ($self) {
 
-		$item 		= $this->item;
-		$settings 	= $args[ 'dhl_settings' ];
-		$order_id 	= $args[ 'order_details' ][ 'order_id' ];
-		$order 		= wc_get_order( $order_id );
+					return strtoupper( $uom );
+				}
+			),
+			'dhl_product' => array(
+				'rename' 	=> 'product_code',
+				'default' 	=> 'PDO'
+			),
+			'currency' => array(
+				'error' => __( 'Shop "Currency" is empty!', 'pr-shipping-dhl' ),
+			),
+			'duties' => array(
+				'default' 	=> '',
+				'validate' => function( $value ) {
 
-		$item["shipmentID"] 			= "2MY15107346524632";
-		$item["returnMode"] 			= null;
-		$item["deliveryConfirmationNo"] = null;
-		$item["packageDesc"] 			= "PKG_desc";
-		$item["totalWeight"]			= 0.0;
-		$item["totalWeightUOM"] 		= $this->get_weight_uom();
-		$item["dimensionUOM"] 			= $this->get_dimension_uom();
-		$item["height"] 				= 0.0;
-		$item["length"] 				= 0.0;
-		$item["width"] 					= 0.0;
-		$item["customerReference1"] 	= $settings['dhl_label_ref'];
-		$item["customerReference2"] 	= $settings['dhl_label_ref_2'];
-		$item["productCode"] 			= $settings['dhl_default_product_int'];
-		$item["contentIndicator"] 		= null;
-		$item["codValue"] 				= null;
-		$item["insuranceValue"] 		= null;
-		$item["freightCharge"] 			= null;
-		$item["totalValue"] 			= null;
-		$item["currency"] 				= get_woocommerce_currency();
-		$item["remarks"] 				= $settings['dhl_remarks'];
-		$item["workshareIndicator"] 	= null;
-		$item["billingReference1"] 		= null;
-		$item["billingReference2"] 		= null;
-		$item["valueAddedServices"] = array(
-			'valueAddedService' => array(
-				array( "vasCode" => "PPOD" )
+					if( empty( $value ) && $this->crossBorder == true ) {
+						throw new Exception( __( 'Shipment "Duties" is empty!', 'pr-shipping-dhl' ) );
+					}
+				},
+				'sanitize' 	=> function( $value ) {
+
+					return ($value=='DDP') ? true : false;
+
+				}
+			),
+			'label_format' => array(
+				'default' 	=> '',
+				'validate'	=> function( $format ){
+					
+					if( $format != 'ZPL' && $format != 'PNG' ){
+						throw new Exception( __( 'Label format is not available.', 'pr-shipping-dhl' ) );
+					}
+				}
 			)
-
 		);
-		$item["isMult"] 			= "TRUE";
-		$item["deliveryOption"] 	= "C"; // only supported C
-
-		$this->item = array_merge( $this->item, $item );
 	}
 
 	/**
-	 * Update shipment pieces data in the item
-	 * 
+	 * Retrieves the args scheme to use with {@link Args_Parser} for parsing order recipient info.
+	 *
 	 * @since [*next-version*]
-	 * 
-	 * @param Array $args
-	 * 
+	 *
+	 * @return array
 	 */
-	public function update_item_shipment_pieces( $args ){
+	protected function get_recipient_info_schema() {
 
-		$item 			= $this->item;
-		$order_id 		= $args[ 'order_details' ][ 'order_id' ];
-		$order 			= wc_get_order( $order_id );
+		// Closures in PHP 5.3 do not inherit class context
+		// So we need to copy $this into a lexical variable and pass it to closures manually
+		$self = $this;
 		
-		$total_weight 	= 0;
-		$total_height 	= 0;
-		$total_width 	= 0;
-		$total_length 	= 0;
+		return array(
+			'name'      => array(
+				'error'  => __( 'Recipient is empty!', 'pr-shipping-dhl' ),
+				'sanitize' => function( $name ) use ($self) {
 
-		foreach( $order->get_items() as $item_id => $item_line ){
+					return $self->string_length_sanitization( $name, 30 );
+				}
+			),
+			'company' 	=> array(
+				'rename' 	=> 'companyName',
+				'default' 	=> ''
+			),
+			'address_1' => array(
+				'rename' => 'address1',
+				'error' => __( 'Shipping "Address 1" is empty!', 'pr-shipping-dhl' ),
+			),
+			'address_2' => array(
+				'rename' => 'address2',
+				'default' => '',
+			),
+			'city'      => array(
+				'error' => __( 'Shipping "City" is empty!', 'pr-shipping-dhl' ),
+			),
+			'state'     => array(
+				'default' => '',
+			),
+			'country'   => array(
+				'error' => __( 'Shipping "Country" is empty!', 'pr-shipping-dhl' ),
+			),
+			'postcode'  => array(
+				'rename' => 'postalCode',
+				'error' => __( 'Shipping "Postcode" is empty!', 'pr-shipping-dhl' ),
+			),
+			'email'     => array(
+				'default' => '',
+			),
+			'phone'     => array(
+				'default' => '',
+				'sanitize' => function( $phone ) use ($self) {
 
-			$product_id 	= $item_line->get_product_id();
-			$product 		= wc_get_product( $product_id );
-
-			$weight 		= absint( $product->get_weight() ) < 1? 1 : absint( $product->get_weight() );
-			$weight_uom 	= $this->weightUom;
-			$weight_gr		= $this->maybe_convert_to_grams( $weight, $weight_uom );
-
-			$height 		= absint( $product->get_height() ) < 1? 1 : absint( $product->get_height() );
-			$width 			= absint( $product->get_width() ) < 1? 1 : absint( $product->get_width() );
-			$length 		= absint( $product->get_length() ) < 1? 1 : absint( $product->get_length() );
-
-			$total_weight 	+= $weight;
-			$total_height 	+= $height;
-			$total_width 	+= $width;
-			$total_length 	+= $length;
-
-			$item["shipmentPieces"][] = array(
-				"pieceID" 			=> $product_id,
-				"announcedWeight" 	=> array(
-					"weight" 	=> $weight_gr,
-					"unit" 		=> $this->get_weight_uom()
-				),
-				"codAmount" 		=> 0,
-				"insuranceAmount" 	=> 0,
-				"billingReference1"	=> $order_id . "-" . $product_id,
-				"billingReference2" => $order_id . "-" . $product_id,
-				"pieceDescription"	=> $item_line->get_name()
-			);
-
-		}
-
-		$item["totalWeight"] 	= $total_weight;
-		$item["height"] 		= $total_height;
-		$item["length"] 		= $total_length;
-		$item["width"] 			= $total_width;
-
-		$this->item = array_merge( $this->item, $item );
-
+					return $self->string_length_sanitization( $phone, 15 );
+				}
+			),
+		);
 	}
 
 	/**
-	 * Update total weight and dimensions data in the item
-	 * 
+	 * Retrieves the args scheme to use with {@link Args_Parser} for parsing order pickup shipment info.
+	 *
 	 * @since [*next-version*]
-	 * 
-	 * @param Array $args
-	 * 
+	 *
+	 * @return array
 	 */
-	public function update_total_weight_dimensions( $args ){
+	protected function get_shipper_info_schema() {
 
-		$item 			= $this->item;
-		$order_id 		= $args[ 'order_details' ][ 'order_id' ];
-		$order 			= wc_get_order( $order_id );
-		
-		$total_weight 	= 0;
-		$total_height 	= 0;
-		$total_width 	= 0;
-		$total_length 	= 0;
+		// Closures in PHP 5.3 do not inherit class context
+		// So we need to copy $this into a lexical variable and pass it to closures manually
+		$self = $this;
 
-		foreach( $order->get_items() as $item_id => $item_line ){
+		return array(
+			'dhl_contact_name'      => array(
+				'rename' => 'name',
+				'error'  => __( '"Account Name" in settings is empty.', 'pr-shipping-dhl' ),
+				'sanitize' => function( $name ) use ($self) {
 
-			$product_id 	= $item_line->get_product_id();
-			$product 		= wc_get_product( $product_id );
+					return $self->string_length_sanitization( $name, 30 );
+				}
+			),
+			'dhl_company_name'      => array(
+				'rename' => 'companyName',
+				'error'  => __( '"Company Name" in settings is empty.', 'pr-shipping-dhl' ),
+				'sanitize' => function( $name ) use ($self) {
 
-			$quantity 		= $item_line->get_quantity();
-
-			$weight 		= absint( $product->get_weight() ) < 1? 1 : absint( $product->get_weight() );
-			$weight_uom 	= $this->weightUom;
-			$weight_gr		= $this->maybe_convert_to_grams( $weight, $weight_uom );
-
-			$height 		= absint( $product->get_height() ) < 1? 1 : absint( $product->get_height() );
-			$width 			= absint( $product->get_width() ) < 1? 1 : absint( $product->get_width() );
-			$length 		= absint( $product->get_length() ) < 1? 1 : absint( $product->get_length() );
-
-			$total_weight 	+= ( $weight * $quantity );
-			$total_height 	+= ( $height * $quantity );
-			$total_width 	+= ( $width * $quantity );
-			$total_length 	+= ( $length * $quantity );
-		
-		}
-
-		$item["totalWeight"] 	= $total_weight;
-		$item["height"] 		= $total_height;
-		$item["length"] 		= $total_length;
-		$item["width"] 			= $total_width;
-
-		$this->item = array_merge( $this->item, $item );
+					return $self->string_length_sanitization( $name, 30 );
+				}
+			),
+			'dhl_address_1' => array(
+				'rename' => 'address1',
+				'error' => __( 'Base "Address 1" is empty!', 'pr-shipping-dhl' ),
+			),
+			'dhl_address_2' => array(
+				'rename' => 'address2',
+				'default' => '',
+			),
+			'dhl_city'      => array(
+				'rename' => 'city',
+				'error' => __( 'Base "City" is empty!', 'pr-shipping-dhl' ),
+			),
+			'dhl_state'     => array(
+				'rename' => 'state',
+				'default' => '',
+			),
+			'dhl_country'   => array(
+				'rename' => 'country',
+				'error' => __( 'Base "Country" is empty!', 'pr-shipping-dhl' ),
+			),
+			'dhl_postcode'  => array(
+				'rename' => 'postalCode',
+				'error' => __( 'Base "Postcode" is empty!', 'pr-shipping-dhl' ),
+			),
+		);
 	}
 
 	/**
-	 * Update shipment contents data in the item
-	 * 
+	 * Retrieves the args scheme to use with {@link Args_Parser} for parsing order content item info.
+	 *
 	 * @since [*next-version*]
-	 * 
-	 * @param Array $args
-	 * 
+	 *
+	 * @return array
 	 */
-	public function update_item_shipment_contents( $args ){
-		
-		$settings 	= $args['dhl_settings'];
-		
-		$item 		= $this->item;
-		$order_id 	= $args[ 'order_details' ][ 'order_id' ];
-		$order 		= wc_get_order( $order_id );
-		
-		$total_val 	= 0;
+	protected function get_content_item_info_schema()
+	{
+		// Closures in PHP 5.3 do not inherit class context
+		// So we need to copy $this into a lexical variable and pass it to closures manually
+		$self = $this;
 
-		foreach( $order->get_items() as $item_id => $item_line ){
+		return array(
+			'hs_code'     => array(
+				'default'  => '',
+				'validate' => function( $hs_code ) {
+					$length = is_string( $hs_code ) ? strlen( $hs_code ) : 0;
 
-			$product_id 	= $item_line->get_product_id();
-			$product 		= wc_get_product( $product_id );
-			$product_sku 	= empty( $product->get_sku() )? "product_id-".$product_id : $product->get_sku();
-			$weight 		= $product->get_weight();
-			$weight_uom 	= $this->weightUom;
-			$weight_gr		= $this->maybe_convert_to_grams( $weight, $weight_uom );
+					if (empty($length)) {
+						return;
+					}
 
-			$total_val 		+= $product->get_price();
+					if ( $length < 6 || $length > 20 ) {
+						throw new Exception(
+							__( 'Item HS Code must be between 6 and 20 characters long', 'pr-shipping-dhl' )
+						);
+					}
+				},
+			),
+			'item_description' => array(
+				'rename' => 'description',
+				'default' => '',
+				'sanitize' => function( $description ) use ($self) {
 
-			$item["shipmentContents"][] = array(
-				"skuNumber" 			=> $product_sku,
-				"description"			=> $item_line->get_name(),
-				"descriptionImport" 	=> $item_line->get_name(),
-				"descriptionExport" 	=> $item_line->get_name(),
-				"itemValue" 			=> round( $product->get_price(), 2),
-				"itemQuantity" 			=> $item_line->get_quantity(),
-				"grossWeight" 			=> $weight_gr,
-				"netWeight" 			=> $weight_gr,
-				"weightUOM" 			=> $this->get_weight_uom(),
-				"contentIndicator"		=> null,
-				"countryOfOrigin" 		=> $settings['dhl_country'],
-			);
+					return $self->string_length_sanitization( $description, 33 );
+				}
+			),
+			'product_id'  => array(
+				'error' => __( 'Item "Product ID" is empty!', 'pr-shipping-dhl' ),
+			),
+			'sku'         => array(
+				'error' => __( 'Item "Product SKU" is empty!', 'pr-shipping-dhl' ),
+			),
+			'item_value'       => array(
+				'rename' => 'value',
+				'default' => 0,
+				'sanitize' => function( $value ) use ($self) {
 
-		}
+					return $self->float_round_sanitization( $value, 2 );
+				}
+			),
+			'origin'      => array(
+				'default' => PR_DHL()->get_base_country(),
+			),
+			'qty'         => array(
+				'validate' => function( $qty ) {
 
-		$item["totalValue"] 	= round( $total_val, 2);
+					if( !is_numeric( $qty ) || $qty < 1 ){
 
-		$this->item = array_merge( $this->item, $item );
+						throw new Exception(
+							__( 'Item quantity must be more than 1', 'pr-shipping-dhl' )
+						);
 
-	}
+					}
+				},
+			),
+			'item_weight'      => array(
+				'rename' => 'weight',
+				'sanitize' => function ( $weight ) use ($self) {
 
-	public function get_weight_uom(){
-		return "G";
-	}
-
-	public function get_dimension_uom(){
-		return "CM";
+					$weight = $self->maybe_convert_to_grams( $weight, $self->weightUom );
+					$weight = ( $weight > 1 )? $weight : 1;
+					return $weight;
+				}
+			),
+			'dangerous_goods' => array(
+				'default' => ''
+			)
+		);
 	}
 
 	/**
@@ -406,33 +423,6 @@ class Item_Info {
 		}
 
 		return substr( $string, 0, ( $max-1 ));
-	}
-
-	public function order_address( $order_id ){
-
-		$order 		= wc_get_order( $order_id );
-		
-		$name 		= empty( $order->get_shipping_first_name() )? $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() : $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name();
-		$address1 	= empty( $order->get_shipping_address_1() )? $order->get_billing_address_1() : $order->get_shipping_address_1();
-		$address2 	= empty( $order->get_shipping_address_2() )? $order->get_billing_address_2() : $order->get_shipping_address_2();
-		$city 		= empty( $order->get_shipping_city() )? $order->get_billing_city() : $order->get_shipping_city();
-		$state 		= empty( $order->get_shipping_state() )? $order->get_billing_state() : $order->get_shipping_state();
-		$district 	= empty( $order->get_shipping_state() )? $order->get_billing_state() : $order->get_shipping_state();
-		$country 	= empty( $order->get_shipping_country() )? $order->get_billing_country() : $order->get_shipping_country();
-		$postcode 	= empty( $order->get_shipping_postcode() )? $order->get_billing_postcode() : $order->get_shipping_postcode();
-
-		$address_info = array(
-			"name" 		=> $name,
-			"address1" 	=> $address1,
-			"address2" 	=> $address2,
-			"city" 		=> $city,
-			"state" 	=> $state,
-			"district" 	=> $district,
-			"country" 	=> $country,
-			"postcode" 	=> $postcode,
-		);
-		
-		return $address_info;
 	}
 
 }

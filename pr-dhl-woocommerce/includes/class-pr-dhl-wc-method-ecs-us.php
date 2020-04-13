@@ -139,79 +139,9 @@ class PR_DHL_WC_Method_eCS_US extends WC_Shipping_Method {
 					'default'           => '',
 					'placeholder'		=> 'Contact Name'
 				),
-				'dhl_address_1' => array(
-					'title'             => __( 'Address 1', 'pr-shipping-dhl' ),
-					'type'              => 'text',
-					'description'       => __( 'The address of the merchant, used as contact information when creating DHL eCommerce orders.', 'pr-shipping-dhl' ),
-					'desc_tip'          => true,
-					'default'           => '',
-					'placeholder'		=> 'Address 1'
-				),
-				'dhl_address_2' => array(
-					'title'             => __( 'Address 2', 'pr-shipping-dhl' ),
-					'type'              => 'text',
-					'description'       => __( 'The address of the merchant, used as contact information when creating DHL eCommerce orders.', 'pr-shipping-dhl' ),
-					'desc_tip'          => true,
-					'default'           => '',
-					'placeholder'		=> 'Address 2'
-				),
-				'dhl_city' => array(
-					'title'             => __( 'City', 'pr-shipping-dhl' ),
-					'type'              => 'text',
-					'description'       => __( 'The city of the merchant, used as contact information when creating DHL eCommerce orders.', 'pr-shipping-dhl' ),
-					'desc_tip'          => true,
-					'default'           => '',
-					'placeholder'		=> 'City'
-				),
-				'dhl_state' => array(
-					'title'             => __( 'State', 'pr-shipping-dhl' ),
-					'type'              => 'text',
-					'description'       => __( 'The state of the merchant, used as contact information when creating DHL eCommerce orders.', 'pr-shipping-dhl' ),
-					'desc_tip'          => true,
-					'default'           => '',
-					'placeholder'		=> 'State'
-				),
-				'dhl_district' => array(
-					'title'             => __( 'District', 'pr-shipping-dhl' ),
-					'type'              => 'text',
-					'description'       => __( 'The district of the merchant, used as contact information when creating DHL eCommerce orders.', 'pr-shipping-dhl' ),
-					'desc_tip'          => true,
-					'default'           => '',
-					'placeholder'		=> 'District'
-				),
-				'dhl_country' => array(
-					'title'             => __( 'Country', 'pr-shipping-dhl' ),
-					'type'              => 'text',
-					'description'       => __( 'The country of the merchant, used as contact information when creating DHL eCommerce orders.', 'pr-shipping-dhl' ),
-					'desc_tip'          => true,
-					'default'           => '',
-					'placeholder'		=> 'Country'
-				),
-				'dhl_postcode' => array(
-					'title'             => __( 'Post Code', 'pr-shipping-dhl' ),
-					'type'              => 'text',
-					'description'       => __( 'The post code of the merchant, used as contact information when creating DHL eCommerce orders.', 'pr-shipping-dhl' ),
-					'desc_tip'          => true,
-					'default'           => '',
-					'placeholder'		=> 'Post Code'
-				),
-				'dhl_phone' => array(
-					'title'             => __( 'Phone Number', 'pr-shipping-dhl' ),
-					'type'              => 'text',
-					'description'       => __( 'The phone number of the merchant, used as contact information when creating DHL eCommerce orders.', 'pr-shipping-dhl' ),
-					'desc_tip'          => true,
-					'default'           => '',
-					'placeholder'		=> 'Phone Number'
-				),
-				'dhl_email' => array(
-					'title'             => __( 'Email', 'pr-shipping-dhl' ),
-					'type'              => 'text',
-					'description'       => __( 'The email of the merchant, used as contact information when creating DHL eCommerce orders.', 'pr-shipping-dhl' ),
-					'desc_tip'          => true,
-					'default'           => '',
-					'placeholder'		=> 'Email'
-				),
-
+			);
+	
+		$this->form_fields += array(
 
             'dhl_api'                    => array(
                 'title'       => __( 'Account and API Settings', 'pr-shipping-dhl' ),
@@ -335,7 +265,16 @@ class PR_DHL_WC_Method_eCS_US extends WC_Shipping_Method {
 			    'title'           => __( 'Label options', 'pr-shipping-dhl' ),
 			    'type'            => 'title',
 			    'description'     => __( 'Options for configuring your label preferences', 'pr-shipping-dhl' ),
-		    ),
+			),
+			'dhl_prefix' => array(
+                'title'             => __( 'Package Prefix', 'pr-shipping-dhl' ),
+                'type'              => 'text',
+                'description'       => __( 'The package prefix is added to identify the package is coming from your shop. This value is limited to 5 charaters.', 'pr-shipping-dhl' ),
+                'desc_tip'          => true,
+                'default'           => '',
+                'placeholder'		=> '',
+                'custom_attributes'	=> array( 'maxlength' => '5' )
+            ),
 	        'dhl_label_ref' => array(
 		        'title'             => __( 'Customer Reference', 'pr-shipping-dhl' ),
 		        'type'              => 'text',
@@ -357,15 +296,7 @@ class PR_DHL_WC_Method_eCS_US extends WC_Shipping_Method {
 				'type'              => 'select',
 				'description'       => __( 'Select one of the formats to generate the shipping label in.', 'pr-shipping-dhl' ),
 				'desc_tip'          => true,
-				'options'           => array( 'PDF' => 'PDF', 'PNG' => 'PNG', 'ZPL' => 'ZPL' ),
-				'class'				=> 'wc-enhanced-select'
-			),
-			'dhl_label_size' => array(
-				'title'             => __( 'Label Size', 'pr-shipping-dhl' ),
-				'type'              => 'select',
-				'description'       => __( 'Select the shipping label size.', 'pr-shipping-dhl' ),
-				'desc_tip'          => true,
-				'options'           => array( '4x1' => '4x1', '1x1' => '1x1' ),
+				'options'           => array( 'PNG' => 'PNG', 'ZPL' => 'ZPL' ),
 				'class'				=> 'wc-enhanced-select'
 			),
         );

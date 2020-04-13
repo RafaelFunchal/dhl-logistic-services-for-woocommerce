@@ -155,28 +155,25 @@ class PR_DHL_WC_Order_eCS_US extends PR_DHL_WC_Order {
 		$order = wc_get_order( $order_id );
 
 		// Get DHL pickup and distribution center
-		$args['dhl_settings']['dhl_api_key'] = $this->shipping_dhl_settings['dhl_api_key'];
-		$args['dhl_settings']['dhl_api_secret'] = $this->shipping_dhl_settings['dhl_api_secret'];
-		$args['dhl_settings']['pickup'] = $this->shipping_dhl_settings['dhl_pickup'];
-		$args['dhl_settings']['distribution'] = $this->shipping_dhl_settings['dhl_distribution'];
-		$args['dhl_settings']['handover'] = $this->get_label_handover_num();
-		$args['dhl_settings']['label_format'] = $this->shipping_dhl_settings['dhl_label_format'];
-		$args['dhl_settings']['label_size'] = $this->shipping_dhl_settings['dhl_label_size'];
-		$args['dhl_settings']['label_page'] = $this->shipping_dhl_settings['dhl_label_page'];
-		$args['dhl_settings']['label_layout'] = $this->shipping_dhl_settings['dhl_label_layout'];
+		$args['dhl_settings']['dhl_api_key'] 				= $this->shipping_dhl_settings['dhl_api_key'];
+		$args['dhl_settings']['dhl_api_secret'] 			= $this->shipping_dhl_settings['dhl_api_secret'];
+		$args['dhl_settings']['pickup_id'] 					= $this->shipping_dhl_settings['dhl_pickup_id'];
+		$args['dhl_settings']['distribution_center'] 		= $this->shipping_dhl_settings['dhl_distribution_center'];
+		$args['dhl_settings']['handover'] 					= $this->get_label_handover_num();
+		$args['dhl_settings']['label_format'] 				= $this->shipping_dhl_settings['dhl_label_format'];
+
+		// Get DHL Pickup Address.
+		$args[ 'dhl_settings' ]['dhl_contact_name'] 		= $this->shipping_dhl_settings['dhl_contact_name'];
+		$args[ 'dhl_settings' ]['dhl_company_name'] 		= $this->shipping_dhl_settings['dhl_company_name'];
+		$args[ 'dhl_settings' ]['dhl_address_1'] 			= WC()->countries->get_base_address();
+		$args[ 'dhl_settings' ]['dhl_address_2'] 			= WC()->countries->get_base_address_2();
+		$args[ 'dhl_settings' ]['dhl_city'] 				= WC()->countries->get_base_city();
+		$args[ 'dhl_settings' ]['dhl_state'] 				= WC()->countries->get_base_state();
+		$args[ 'dhl_settings' ]['dhl_country'] 				= WC()->countries->get_base_country();
+		$args[ 'dhl_settings' ]['dhl_postcode'] 			= WC()->countries->get_base_postcode();
 
 		// Get package prefix
 		$args['order_details']['prefix'] = $this->shipping_dhl_settings['dhl_prefix'];
-		$dhl_label_items['pr_dhl_description'] = 'test';
-		if ( ! empty( $dhl_label_items['pr_dhl_description'] ) ) {
-			$args['order_details']['description'] = $dhl_label_items['pr_dhl_description'];
-		} else {
-			// If description is empty and it is an international shipment throw an error
-			if ( $this->is_crossborder_shipment( $order_id ) ) {
-				throw new Exception( __('The package description cannot be empty!', 'pr-shipping-dhl') );
-				
-			}			
-		}
 
 		if ( isset( $this->shipping_dhl_settings['dhl_order_note'] ) && $this->shipping_dhl_settings['dhl_order_note'] == 'yes' ) {
 

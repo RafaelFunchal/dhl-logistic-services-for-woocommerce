@@ -131,9 +131,9 @@ class Auth implements API_Auth_Interface {
 		}
 
 		$type = $this->token->token_type;
-		$code = $this->token->token;
+		$code = $this->token->access_token;
 
-		//$request->headers[ static::H_AUTH_TOKEN ] = $type . ' ' . $code;
+		$request->headers[ static::H_AUTH_TOKEN ] = $type . ' ' . $code;
 
 		return $request;
 	}
@@ -180,7 +180,7 @@ class Auth implements API_Auth_Interface {
 			$error 	= $response->body;
 			throw new RuntimeException( $error->title  );
 		}
-		error_log( print_r( $response->body, true ) );
+		
 		$token_response 	= $response->body;
 		return $token_response;
 	}
@@ -237,8 +237,8 @@ class Auth implements API_Auth_Interface {
 	 * @param object $token The token to save.
 	 */
 	public function save_token( $token ) {
-		$expires_in = isset($token->expires_in_seconds )
-			? $token->expires_in_seconds
+		$expires_in = isset($token->expires_in )
+			? $token->expires_in
 			: time() + DAY_IN_SECONDS;
 
 		set_transient( $this->transient, $token, $expires_in );
