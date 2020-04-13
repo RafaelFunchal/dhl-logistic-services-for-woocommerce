@@ -153,12 +153,12 @@ class Auth implements API_Auth_Interface {
 	 */
 	public function request_token() {
 		
-		// Prepare for the header and authorization
-		$authorization 	= "Basic " . base64_encode( $this->client_id . ":" . $this->client_secret );
-		$headers = array(
+		// Base64 encode the "<client_id>:<client_secret>" and send as the "Authorization" header
+		$auth_str_64 = base64_encode( $this->client_id . ':' . $this->client_secret );
+		$headers = array( 
+			static::H_AUTH_CREDENTIALS => 'Basic ' . $auth_str_64,
 			'Accept' 			=> 'application/json',
 			'Content-Type' 		=> 'application/x-www-form-urlencoded',
-			'Authorization' 	=> $authorization
 		);
 
 		// Prepare the full request URL
@@ -174,14 +174,14 @@ class Auth implements API_Auth_Interface {
 		$request = new Request( Request::TYPE_POST, $req_url, $params, $post_body, $headers );
 
 		$response = $this->driver->send( $request );
-		error_log( print_r( $response, true ) );
+
 		// If the status code is not 200, throw an error with the raw response body
 		if ( $response->status !== 200 ) {
-			$error 	= json_decode( $response->body );
+			$error 	= $response->body;
 			throw new RuntimeException( $error->title  );
 		}
-
-		$token_response 	= json_decode( $response->body );
+		error_log( print_r( $response->body, true ) );
+		$token_response 	= $response->body;
 		return $token_response;
 	}
 
