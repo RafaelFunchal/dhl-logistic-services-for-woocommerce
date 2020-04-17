@@ -109,31 +109,9 @@ class Client extends API_Client {
 	 */
 	protected function item_info_to_request_data( Item_Info $item_info ) {
 
-		$contents 			= $item_info->contents;
-		$shipment_contents 	= array();
-
-		foreach( $contents as $content ){
-
-			$shipment_content = array(
-				'skuNumber' 			=> $content['sku'],
-				'itemDescription'		=> $content['description'],
-				'itemValue' 			=> $content['value'],
-				'packagedQuantity' 		=> $content['qty'],
-				'countryOfOrigin' 		=> $content['origin'],
-				'currency' 				=> $item_info->shipment['currency'],
-			);
-
-			if( !empty( $content['hs_code'] ) ){
-				$shipment_content['hsCode'] = $content['hs_code'];
-			}
-
-			$shipment_contents[] = $shipment_content;
-
-		}
-
 		$package_id 			= $item_info->shipment['prefix'] . sprintf('%07d', $item_info->shipment['order_id'] );
 
-		return array(
+		$request_data = array(
 			'pickup' 				=> $item_info->shipment['pickup_id'],
 			'distributionCenter'	=> $item_info->shipment['distribution_center'],
 			'orderedProductId' 		=> $item_info->shipment['product_code'],
@@ -145,13 +123,42 @@ class Client extends API_Client {
 					'value' 		=> $item_info->shipment['weight'],
 					'unitOfMeasure'	=> $item_info->shipment['weightUom'],
 				),
+				'shippingCost' 			=> array(
+					'currency' 		=> $item_info->shipment['currency'],
+					'dutiesPaid'	=> $item_info->shipment['duties']
+				),
 			),
-			'shippingCost' 			=> array(
-				'currency' 		=> $item_info->shipment['currency'],
-				'dutiesPaid'	=> $item_info->shipment['duties']
-			),
-			'customsDetails' 		=> $shipment_contents,
 		);
+
+		if( $item_info->isCrossBorder ){
+
+			$contents 			= $item_info->contents;
+			$shipment_contents 	= array();
+
+			foreach( $contents as $content ){
+
+				$shipment_content = array(
+					'skuNumber' 			=> $content['sku'],
+					'itemDescription'		=> $content['description'],
+					'itemValue' 			=> $content['value'],
+					'packagedQuantity' 		=> $content['qty'],
+					'countryOfOrigin' 		=> $content['origin'],
+					'currency' 				=> $item_info->shipment['currency'],
+				);
+
+				if( !empty( $content['hs_code'] ) ){
+					$shipment_content['hsCode'] = $content['hs_code'];
+				}
+
+				$shipment_contents[] = $shipment_content;
+
+			}
+
+			$request_data['customsDetails'] = $shipment_contents;
+
+		}
+
+		return Args_Parser::unset_empty_values( $request_data );
 	}
 
 	/**

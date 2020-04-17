@@ -244,6 +244,26 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 		return $this->api_auth->revoke();
 	}
 
+	public function get_dhl_duties() {
+        $duties = array(
+            'DDU' => __('Duties Consignee Paid', 'pr-shipping-dhl'),
+            'DDP' => __('Duties Shipper Paid', 'pr-shipping-dhl')
+        );
+        return $duties;
+	}
+	
+	public function get_dhl_content_indicator() {
+		return array(
+			'00' => __('Does not contain Lithium Batteries', 'pr-shipping-dhl' ),
+			'01' => __('Lithium Batteries in item', 'pr-shipping-dhl' ),
+			'02' => __('Lithium Batteries packed with item', 'pr-shipping-dhl' ),
+			'03' => __('Lithium Batteries only', 'pr-shipping-dhl' ),
+			'04' => __('Rechargeable Batteries in item', 'pr-shipping-dhl' ),
+			'05' => __('Rechargeable Batteries packed with item', 'pr-shipping-dhl' ),
+			'06' => __('Rechargeable Batteries only', 'pr-shipping-dhl' ),
+		);
+	}
+
 	/**
 	 * {@inheritdoc}
 	 *
@@ -283,11 +303,11 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 			? $args[ 'order_details' ][ 'order_id' ]
 			: null;
 
-		$uom = get_option( 'woocommerce_weight_unit' );
+		$uom 				= get_option( 'woocommerce_weight_unit' );
+		$is_cross_border 	= PR_DHL()->is_crossborder_shipment( $args['shipping_address']['country'] );
 		try {
-			$item_info = new Item_Info( $args, $uom );
+			$item_info = new Item_Info( $args, $uom, $is_cross_border );
 		} catch (Exception $e) {
-
 			throw $e;
 		}
 

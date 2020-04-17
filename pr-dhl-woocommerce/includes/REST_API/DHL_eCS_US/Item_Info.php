@@ -67,6 +67,15 @@ class Item_Info {
 	protected $weightUom;
 
 	/**
+	 * Is the shipment cross-border or domestic
+	 *
+	 * @since [*next-version*]
+	 *
+	 * @var boolean
+	 */
+	public $isCrossBorder;
+
+	/**
 	 * Constructor.
 	 *
 	 * @since [*next-version*]
@@ -76,10 +85,10 @@ class Item_Info {
 	 *
 	 * @throws Exception If some data in $args did not pass validation.
 	 */
-	public function __construct( $args, $uom ) {
+	public function __construct( $args, $uom, $isCrossBorder ) {
 		//$this->parse_args( $args );
 		$this->weightUom 	= $uom;
-		$this->crossBorder 	= PR_DHL()->is_crossborder_shipment( $args['shipping_address']['country'] );
+		$this->isCrossBorder 	= $isCrossBorder;
 		$this->parse_args( $args, $uom );
 	}
 
@@ -134,6 +143,11 @@ class Item_Info {
 			'distribution_center' => array(
 				'error'  => __( 'Shipment "Distribution Center" is empty!', 'pr-shipping-dhl' ),
 			),
+			'dhl_product' => array(
+				'rename' 	=> 'product_code',
+				'default' 	=> 'PDO',
+				
+			),
 			'weight'     => array(
 				'sanitize' => function ( $weight ) use ($self) {
 
@@ -148,10 +162,6 @@ class Item_Info {
 					return strtoupper( $uom );
 				}
 			),
-			'dhl_product' => array(
-				'rename' 	=> 'product_code',
-				'default' 	=> 'PDO'
-			),
 			'currency' => array(
 				'error' => __( 'Shop "Currency" is empty!', 'pr-shipping-dhl' ),
 			),
@@ -159,7 +169,7 @@ class Item_Info {
 				'default' 	=> '',
 				'validate' => function( $value ) {
 
-					if( empty( $value ) && $this->crossBorder == true ) {
+					if( empty( $value ) && $this->$isCrossBorder == true ) {
 						throw new Exception( __( 'Shipment "Duties" is empty!', 'pr-shipping-dhl' ) );
 					}
 				},
@@ -196,7 +206,7 @@ class Item_Info {
 		
 		return array(
 			'name'      => array(
-				'error'  => __( 'Recipient is empty!', 'pr-shipping-dhl' ),
+				'error'  => __( 'Recipient "Name" is empty!', 'pr-shipping-dhl' ),
 				'sanitize' => function( $name ) use ($self) {
 
 					return $self->string_length_sanitization( $name, 30 );
@@ -204,38 +214,74 @@ class Item_Info {
 			),
 			'company' 	=> array(
 				'rename' 	=> 'companyName',
-				'default' 	=> ''
+				'default' 	=> '',
+				'sanitize' => function( $company ) use ($self) {
+
+					return $self->string_length_sanitization( $company, 30 );
+				},
+				'validate' => function( $value ) {
+
+                    if( empty( $value ) && !$this->isCrossBorder ) {
+                        throw new Exception( __( 'Recipient "Company" is empty!', 'pr-shipping-dhl' ) );
+                    }
+                },
 			),
 			'address_1' => array(
 				'rename' => 'address1',
-				'error' => __( 'Shipping "Address 1" is empty!', 'pr-shipping-dhl' ),
+				'error' => __( 'Recipient "Address 1" is empty!', 'pr-shipping-dhl' ),
+				'sanitize' => function( $address ) use ($self) {
+
+					return $self->string_length_sanitization( $address, 50 );
+				},
 			),
 			'address_2' => array(
 				'rename' => 'address2',
 				'default' => '',
 			),
 			'city'      => array(
-				'error' => __( 'Shipping "City" is empty!', 'pr-shipping-dhl' ),
+				'error' => __( 'Recipient "City" is empty!', 'pr-shipping-dhl' ),
+				'sanitize' => function( $address ) use ($self) {
+
+					return $self->string_length_sanitization( $address, 30 );
+				},
 			),
 			'state'     => array(
 				'default' => '',
+				'validate' => function( $value ) {
+
+                    if( empty( $value ) && !$this->isCrossBorder ) {
+                        throw new Exception( __( 'Recipient "state" is empty!', 'pr-shipping-dhl' ) );
+                    }
+                },
 			),
 			'country'   => array(
-				'error' => __( 'Shipping "Country" is empty!', 'pr-shipping-dhl' ),
+				'error' => __( 'Recipient "Country" is empty!', 'pr-shipping-dhl' ),
 			),
 			'postcode'  => array(
 				'rename' => 'postalCode',
-				'error' => __( 'Shipping "Postcode" is empty!', 'pr-shipping-dhl' ),
+				'error' => __( 'Recipient "Postcode" is empty!', 'pr-shipping-dhl' ),
 			),
 			'email'     => array(
 				'default' => '',
+				'validate' => function( $value ) {
+
+                    if( empty( $value ) && $this->isCrossBorder ) {
+                        throw new Exception( __( 'Recipient "email" is empty!', 'pr-shipping-dhl' ) );
+                    }
+                },
 			),
 			'phone'     => array(
 				'default' => '',
 				'sanitize' => function( $phone ) use ($self) {
 
 					return $self->string_length_sanitization( $phone, 15 );
-				}
+				},
+				'validate' => function( $value ) {
+
+                    if( empty( $value ) && !$this->isCrossBorder ) {
+                        throw new Exception( __( 'Recipient "phone" is empty!', 'pr-shipping-dhl' ) );
+                    }
+                },
 			),
 		);
 	}
@@ -256,7 +302,7 @@ class Item_Info {
 		return array(
 			'dhl_contact_name'      => array(
 				'rename' => 'name',
-				'error'  => __( '"Account Name" in settings is empty.', 'pr-shipping-dhl' ),
+				'error'  => __( 'Base "Account Name" in settings is empty.', 'pr-shipping-dhl' ),
 				'sanitize' => function( $name ) use ($self) {
 
 					return $self->string_length_sanitization( $name, 30 );
@@ -264,7 +310,7 @@ class Item_Info {
 			),
 			'dhl_company_name'      => array(
 				'rename' => 'companyName',
-				'error'  => __( '"Company Name" in settings is empty.', 'pr-shipping-dhl' ),
+				'error'  => __( 'Base "Company Name" in settings is empty.', 'pr-shipping-dhl' ),
 				'sanitize' => function( $name ) use ($self) {
 
 					return $self->string_length_sanitization( $name, 30 );
@@ -273,6 +319,10 @@ class Item_Info {
 			'dhl_address_1' => array(
 				'rename' => 'address1',
 				'error' => __( 'Base "Address 1" is empty!', 'pr-shipping-dhl' ),
+				'sanitize' => function( $address ) use ($self) {
+
+					return $self->string_length_sanitization( $address, 50 );
+				},
 			),
 			'dhl_address_2' => array(
 				'rename' => 'address2',
@@ -281,6 +331,10 @@ class Item_Info {
 			'dhl_city'      => array(
 				'rename' => 'city',
 				'error' => __( 'Base "City" is empty!', 'pr-shipping-dhl' ),
+				'sanitize' => function( $city ) use ($self) {
+
+					return $self->string_length_sanitization( $city, 30 );
+				},
 			),
 			'dhl_state'     => array(
 				'rename' => 'state',
@@ -311,6 +365,23 @@ class Item_Info {
 		$self = $this;
 
 		return array(
+			'item_export' => array(
+				'rename' => 'description',
+				'default' => '',
+				'sanitize' => function( $description ) use ($self) {
+
+					return $self->string_length_sanitization( $description, 50 );
+				},
+				'validate' => function( $value ) {
+
+                    if( empty( $value ) && $this->isCrossBorder ) {
+                        throw new Exception( __( 'Item "description" is empty!', 'pr-shipping-dhl' ) );
+                    }
+                },
+			),
+			'origin'      => array(
+				'default' => PR_DHL()->get_base_country(),
+			),
 			'hs_code'     => array(
 				'default'  => '',
 				'validate' => function( $hs_code ) {
@@ -327,31 +398,6 @@ class Item_Info {
 					}
 				},
 			),
-			'item_description' => array(
-				'rename' => 'description',
-				'default' => '',
-				'sanitize' => function( $description ) use ($self) {
-
-					return $self->string_length_sanitization( $description, 33 );
-				}
-			),
-			'product_id'  => array(
-				'error' => __( 'Item "Product ID" is empty!', 'pr-shipping-dhl' ),
-			),
-			'sku'         => array(
-				'error' => __( 'Item "Product SKU" is empty!', 'pr-shipping-dhl' ),
-			),
-			'item_value'       => array(
-				'rename' => 'value',
-				'default' => 0,
-				'sanitize' => function( $value ) use ($self) {
-
-					return $self->float_round_sanitization( $value, 2 );
-				}
-			),
-			'origin'      => array(
-				'default' => PR_DHL()->get_base_country(),
-			),
 			'qty'         => array(
 				'validate' => function( $qty ) {
 
@@ -364,18 +410,21 @@ class Item_Info {
 					}
 				},
 			),
-			'item_weight'      => array(
-				'rename' => 'weight',
-				'sanitize' => function ( $weight ) use ($self) {
+			'item_value'       => array(
+				'rename' => 'value',
+				'default' => 0,
+				'sanitize' => function( $value ) use ($self) {
 
-					$weight = $self->maybe_convert_to_grams( $weight, $self->weightUom );
-					$weight = ( $weight > 1 )? $weight : 1;
-					return $weight;
+					return $self->float_round_sanitization( $value, 2 );
 				}
 			),
-			'dangerous_goods' => array(
-				'default' => ''
-			)
+			'sku'         => array(
+				'default' => '',
+				'sanitize' => function( $value ) use ($self) {
+
+					return $self->string_length_sanitization( $value, 20 );
+				}
+			),
 		);
 	}
 

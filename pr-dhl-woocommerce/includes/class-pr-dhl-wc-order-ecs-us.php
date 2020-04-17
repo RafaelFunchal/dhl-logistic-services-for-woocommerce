@@ -37,14 +37,13 @@ class PR_DHL_WC_Order_eCS_US extends PR_DHL_WC_Order {
 
 	public function additional_meta_box_fields( $order_id, $is_disabled, $dhl_label_items, $dhl_obj ) {
 
-		/*
 		if( $this->is_crossborder_shipment( $order_id ) ) {
 			
 			// Duties drop down
 			$duties_opt = $dhl_obj->get_dhl_duties();
 			woocommerce_wp_select( array(
 					'id'          		=> 'pr_dhl_duties',
-					'label'       		=> __( 'Incoterms:', 'pr-shipping-dhl' ),
+					'label'       		=> __( 'Duties paid:', 'pr-shipping-dhl' ),
 					'description'		=> '',
 					'value'       		=> isset( $dhl_label_items['pr_dhl_duties'] ) ? $dhl_label_items['pr_dhl_duties'] : $this->shipping_dhl_settings['dhl_duties_default'],
 					'options'			=> $duties_opt,
@@ -80,7 +79,6 @@ class PR_DHL_WC_Order_eCS_US extends PR_DHL_WC_Order {
 				'custom_attributes'	=> array( $is_disabled => $is_disabled )
 			) );
 		}
-		*/
 	}
 	
 
@@ -200,6 +198,7 @@ class PR_DHL_WC_Order_eCS_US extends PR_DHL_WC_Order {
 
 		$new_item = array();
 		$dangerous_goods = get_post_meta( $product_id, '_dhl_dangerous_goods', true );
+
 	    if( ! empty( $dangerous_goods ) ) {
 
 	    	if ( isset( $args['order_details']['dangerous_goods'] ) ) {
