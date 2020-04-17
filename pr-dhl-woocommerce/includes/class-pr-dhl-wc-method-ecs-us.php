@@ -88,11 +88,19 @@ class PR_DHL_WC_Method_eCS_US extends WC_Shipping_Method {
 
         $log_path = PR_DHL()->get_log_url();
 
+		$select_dhl_desc_default = array( 
+			'product_cat' => __('Product Categories', 'pr-shipping-dhl'), 
+			'product_tag' => __('Product Tags', 'pr-shipping-dhl'), 
+			'product_name' => __('Product Name', 'pr-shipping-dhl'), 
+			'product_export' => __('Product Export Description', 'pr-shipping-dhl')
+		);
+
         try {
 
             $dhl_obj = PR_DHL()->get_dhl_factory();
 			$select_dhl_product_int = $dhl_obj->get_dhl_products_international();
 			$select_dhl_product_dom = $dhl_obj->get_dhl_products_domestic();
+			$select_dhl_duties = $dhl_obj->get_dhl_duties();
         } catch ( Exception $e ) {
             PR_DHL()->log_msg( __( 'DHL eCS US Products not displaying - ', 'pr-shipping-dhl' ) . $e->getMessage() );
         }
@@ -140,18 +148,117 @@ class PR_DHL_WC_Method_eCS_US extends WC_Shipping_Method {
 					'placeholder'		=> 'Contact Name'
 				),
 			);
-	
-		$this->form_fields += array(
 
-            'dhl_api'                    => array(
-                'title'       => __( 'Account and API Settings', 'pr-shipping-dhl' ),
-                'type'        => 'title',
-                'description' => __(
-                    'Please configure your account and API settings with DHL eCommerce International.',
-                    'pr-shipping-dhl'
-                ),
-                'class'       => '',
-            ),
+			$this->form_fields += array(
+				'dhl_label_section'   => array(
+					'title'           => __( 'Label', 'pr-shipping-dhl' ),
+					'type'            => 'title',
+					'description'     => __( 'Options for configuring your label preferences', 'pr-shipping-dhl' ),
+				),
+				'dhl_default_product_int' => array(
+					'title'       => __( 'International Default Service', 'pr-shipping-dhl' ),
+					'type'        => 'select',
+					'description' => __(
+						'Please select your default DHL eCommerce shipping service for cross-border shippments that you want to offer to your customers (you can always change this within each individual order afterwards).',
+						'pr-shipping-dhl'
+					),
+					'desc_tip'    => true,
+					'options'     => $select_dhl_product_int,
+					'class'       => 'wc-enhanced-select',
+				),
+				'dhl_default_product_dom' => array(
+					'title'             => __( 'Domestic Default Service', 'pr-shipping-dhl' ),
+					'type'              => 'select',
+					'description'       => __( 'Please select your default DHL eCommerce shipping service for domestic shippments that you want to offer to your customers (you can always change this within each individual order afterwards)', 'pr-shipping-dhl' ),
+					'desc_tip'          => true,
+					'options'           => $select_dhl_product_dom,
+					'class'				=> 'wc-enhanced-select'
+				),
+				'dhl_prefix' => array(
+					'title'             => __( 'Customer Prefix', 'pr-shipping-dhl' ),
+					'type'              => 'text',
+					'description'       => __( 'The package prefix is added to identify the package is coming from your shop. This value is limited to 5 charaters.', 'pr-shipping-dhl' ),
+					'desc_tip'          => true,
+					'default'           => '',
+					'placeholder'		=> '',
+					'custom_attributes'	=> array( 'maxlength' => '5' )
+				),
+				'dhl_desc_default' => array(
+					'title'             => __( 'Package Description', 'pr-shipping-dhl' ),
+					'type'              => 'select',
+					'description'       => __( 'Prefill the package description with one of the options.', 'pr-shipping-dhl' ),
+					'desc_tip'          => true,
+					'options'           => $select_dhl_desc_default,
+					'class'				=> 'wc-enhanced-select'
+				),
+				'dhl_label_format' => array(
+					'title'             => __( 'Label Format', 'pr-shipping-dhl' ),
+					'type'              => 'select',
+					'description'       => __( 'Select one of the formats to generate the shipping label in.', 'pr-shipping-dhl' ),
+					'desc_tip'          => true,
+					'options'           => array( 'PNG' => 'PNG', 'ZPL' => 'ZPL' ),
+					'class'				=> 'wc-enhanced-select'
+				),
+				'dhl_add_weight_type' => array(
+					'title'             => __( 'Additional Weight Type', 'pr-shipping-dhl' ),
+					'type'              => 'select',
+					'description'       => __( 'Select whether to add an absolute weight amount or percentage amount to the total product weight.', 'pr-shipping-dhl' ),
+					'desc_tip'          => true,
+					'options'           => array( 'absolute' => 'Absolute', 'percentage' => 'Percentage'),
+					'class'				=> 'wc-enhanced-select'
+				),
+				'dhl_add_weight' => array(
+					'title'             => sprintf( __( 'Additional Weight (%s or %%)', 'pr-shipping-dhl' ), $weight_units),
+					'type'              => 'text',
+					'description'       => __( 'Add extra weight in addition to the products.  Either an absolute amount or percentage (e.g. 10 for 10%).', 'pr-shipping-dhl' ),
+					'desc_tip'          => true,
+					'default'           => '',
+					'placeholder'		=> '',
+					'class'				=> 'wc_input_decimal'
+				),
+				'dhl_duties_default' => array(
+					'title'             => __( 'Duties Paid', 'pr-shipping-dhl' ),
+					'type'              => 'select',
+					'description'       => __( 'Select default for duties.', 'pr-shipping-dhl' ),
+					'desc_tip'          => true,
+					'options'           => $select_dhl_duties,
+					'class'				=> 'wc-enhanced-select'
+				),
+				'dhl_tracking_note'     => array(
+					'title'       => __( 'Tracking Note', 'pr-shipping-dhl' ),
+					'type'        => 'checkbox',
+					'label'       => __( 'Make Private', 'pr-shipping-dhl' ),
+					'default'     => 'no',
+					'description' => __(
+						'Please, tick here to not send an email to the customer when the tracking number is added to the order.',
+						'pr-shipping-dhl'
+					),
+					'desc_tip'    => true,
+				),
+				'dhl_tracking_note_txt' => array(
+					'title'       => __( 'Tracking Note', 'pr-shipping-dhl' ),
+					'type'        => 'textarea',
+					'description' => __(
+						'Set the custom text when adding the tracking number to the order notes. {tracking-link} is where the tracking number will be set.',
+						'pr-shipping-dhl'
+					),
+					'desc_tip'    => false,
+					'default'     => __( 'DHL eCommerce Tracking Number: {tracking-link}', 'pr-shipping-dhl' ),
+				),
+			);
+
+
+			$this->form_fields += array(
+
+				'dhl_api'                    => array(
+					'title'       => __( 'API Settings', 'pr-shipping-dhl' ),
+					'type'        => 'title',
+					'description' => __(
+						'Please configure your API settings with DHL eCommerce International.',
+						'pr-shipping-dhl'
+					),
+					'class'       => '',
+				),
 				'dhl_api_key'                => array(
 					'title'       => __( 'Client Id', 'pr-shipping-dhl' ),
 					'type'        => 'text',
@@ -209,97 +316,7 @@ class PR_DHL_WC_Method_eCS_US extends WC_Shipping_Method {
 						'</a>'
 					),
 				),
-        );
-
-        $this->form_fields += array(
-            'dhl_pickup_dist'  => array(
-                'title'       => __( 'Shipping', 'pr-shipping-dhl' ),
-                'type'        => 'title',
-                'description' => __( 'Please configure your shipping parameters underneath.', 'pr-shipping-dhl' ),
-                'class'       => '',
-            ),
-            'dhl_default_product_int' => array(
-                'title'       => __( 'International Default Service', 'pr-shipping-dhl' ),
-                'type'        => 'select',
-                'description' => __(
-                    'Please select your default DHL eCommerce shipping service for cross-border shippments that you want to offer to your customers (you can always change this within each individual order afterwards).',
-                    'pr-shipping-dhl'
-                ),
-                'desc_tip'    => true,
-                'options'     => $select_dhl_product_int,
-                'class'       => 'wc-enhanced-select',
-			),
-			'dhl_default_product_dom' => array(
-				'title'             => __( 'Domestic Default Service', 'pr-shipping-dhl' ),
-				'type'              => 'select',
-				'description'       => __( 'Please select your default DHL eCommerce shipping service for domestic shippments that you want to offer to your customers (you can always change this within each individual order afterwards)', 'pr-shipping-dhl' ),
-				'desc_tip'          => true,
-				'options'           => $select_dhl_product_dom,
-				'class'				=> 'wc-enhanced-select'
-			),
-            'dhl_tracking_note'     => array(
-                'title'       => __( 'Tracking Note', 'pr-shipping-dhl' ),
-                'type'        => 'checkbox',
-                'label'       => __( 'Make Private', 'pr-shipping-dhl' ),
-                'default'     => 'no',
-                'description' => __(
-                    'Please, tick here to not send an email to the customer when the tracking number is added to the order.',
-                    'pr-shipping-dhl'
-                ),
-                'desc_tip'    => true,
-            ),
-            'dhl_tracking_note_txt' => array(
-                'title'       => __( 'Tracking Note', 'pr-shipping-dhl' ),
-                'type'        => 'textarea',
-                'description' => __(
-                    'Set the custom text when adding the tracking number to the order notes. {tracking-link} is where the tracking number will be set.',
-                    'pr-shipping-dhl'
-                ),
-                'desc_tip'    => false,
-                'default'     => __( 'DHL eCommerce Tracking Number: {tracking-link}', 'pr-shipping-dhl' ),
-            ),
-        );
-
-	    $this->form_fields += array(
-		    'dhl_label_section'   => array(
-			    'title'           => __( 'Label options', 'pr-shipping-dhl' ),
-			    'type'            => 'title',
-			    'description'     => __( 'Options for configuring your label preferences', 'pr-shipping-dhl' ),
-			),
-			'dhl_prefix' => array(
-                'title'             => __( 'Package Prefix', 'pr-shipping-dhl' ),
-                'type'              => 'text',
-                'description'       => __( 'The package prefix is added to identify the package is coming from your shop. This value is limited to 5 charaters.', 'pr-shipping-dhl' ),
-                'desc_tip'          => true,
-                'default'           => '',
-                'placeholder'		=> '',
-                'custom_attributes'	=> array( 'maxlength' => '5' )
-            ),
-	        'dhl_label_ref' => array(
-		        'title'             => __( 'Customer Reference', 'pr-shipping-dhl' ),
-		        'type'              => 'text',
-		        'custom_attributes'	=> array( 'maxlength' => '35' ),
-		        'description'       => sprintf( __( 'Use "%s" to send the order id as a reference and "%s" to send the customer email. This text is limited to 35 characters.', 'pr-shipping-dhl' ), '{order_id}' , '{email}', '{user_id}' ),
-		        'desc_tip'          => true,
-		        'default'           => '{order_id}'
-	        ),
-	        'dhl_label_ref_2' => array(
-		        'title'             => __( 'Customer Reference 2', 'pr-shipping-dhl' ),
-		        'type'              => 'text',
-		        'custom_attributes'	=> array( 'maxlength' => '35' ),
-		        'description'       => sprintf( __( 'Use "%s" to send the order id as a reference and "%s" to send the customer email. This text is limited to 35 characters.', 'pr-shipping-dhl' ), '{order_id}' , '{email}', '{user_id}' ),
-		        'desc_tip'          => true,
-		        'default'           => '{email}'
-			),
-			'dhl_label_format' => array(
-				'title'             => __( 'Label Format', 'pr-shipping-dhl' ),
-				'type'              => 'select',
-				'description'       => __( 'Select one of the formats to generate the shipping label in.', 'pr-shipping-dhl' ),
-				'desc_tip'          => true,
-				'options'           => array( 'PNG' => 'PNG', 'ZPL' => 'ZPL' ),
-				'class'				=> 'wc-enhanced-select'
-			),
-        );
+        	);
 
         $this->form_fields += array(
 
