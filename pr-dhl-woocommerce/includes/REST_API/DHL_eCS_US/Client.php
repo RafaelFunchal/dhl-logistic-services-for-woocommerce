@@ -25,6 +25,15 @@ class Client extends API_Client {
 	protected $auth;
 
 	/**
+	 * The pickup id.
+	 *
+	 * @since [*next-version*]
+	 *
+	 * @var String
+	 */
+	protected $pickup_id;
+
+	/**
 	 * The pickup address data.
 	 *
 	 * @since [*next-version*]
@@ -58,10 +67,11 @@ class Client extends API_Client {
 	 *
 	 * @param string $contact_name The contact name to use for creating orders.
 	 */
-	public function __construct( $base_url, API_Driver_Interface $driver, API_Auth_Interface $auth = null ) {
+	public function __construct( $pickup_id, $base_url, API_Driver_Interface $driver, API_Auth_Interface $auth = null ) {
 		parent::__construct( $base_url, $driver, $auth );
 
 		$this->auth 		= $auth;
+		$this->pickup_id 	= $pickup_id;
 		$this->weight_uom 	= get_option('woocommerce_weight_unit');
 	}
 
@@ -75,29 +85,111 @@ class Client extends API_Client {
 	 */
 	public function create_label( Item_Info $item_info ){
 
-		$token 		= $this->auth->load_token();
 		$route 		= $this->create_label_route( $item_info->shipment['label_format'] );
 		$data 		= $this->item_info_to_request_data( $item_info );
-		$headers 	= array(
-			'Accept' 		=> 'application/json',
-			'Content-Type'	=> 'application/json'
-		);
 
-		$response 			= $this->post($route, $data, $headers);
+		$response 			= $this->post($route, $data, $this->header_request() );
 		$decoded_response 	= json_decode( $response->body );
-		error_log( print_r( $decoded_response, true ) );
+		
 		if ( $response->status === 200 ) {
 			
-			return $decoded_response;
+			return $this->get_label_content( $decoded_response );
 
 		}
 
 		throw new Exception(
 			sprintf(
 				__( 'Failed to create label: %s', 'pr-shipping-dhl' ),
-				$decoded_response->title
+				$this->generate_error_details( $decoded_response )
 			)
 		);
+	}
+
+	/**
+	 * Retrieves the label for a DHL, by its barcode.
+	 *
+	 * @param string $item_barcode The barcode of the item whose label to retrieve.
+	 *
+	 * @return string The raw PDF data for the item's label.
+	 *
+	 * @throws Exception
+	 */
+	public function get_label( $package_id ){
+
+		$route 		= $this->get_label_route( $this->pickup_id );
+		$data 		= array( 'packageId' => $package_id );
+
+		$response 			= $this->get($route, $data, $this->header_request( false ) );
+		$decoded_response 	= json_decode( $response->body, true );
+		
+		if ( $response->status === 200 ) {
+
+			return $this->get_label_content( $decoded_response );
+		}
+
+		throw new Exception(
+			sprintf(
+				__( 'Failed to create label: %s', 'pr-shipping-dhl' ),
+				$this->generate_error_details( $decoded_response )
+			)
+		);
+	}
+
+	public function get_label_content( $response ){
+
+		if( !isset( $response['labels'] ) ){
+			throw new Exception( __( 'Label contents are not exist!', 'pr-shipping-dhl' ) );
+		}
+
+		foreach( $response['labels'] as $label ){
+			if( !isset( $label['labelData'] ) ){
+				throw new Exception( __( 'Label data is not exist!', 'pr-shipping-dhl' ) );
+			}
+
+			if( !isset( $label['packageId'] ) ){
+				throw new Exception( __( 'Package ID is not exist!', 'pr-shipping-dhl' ) );
+			}
+
+			if( !isset( $label['dhlPackageId'] ) ){
+				throw new Exception( __( 'DHL Package ID is not exist!', 'pr-shipping-dhl' ) );
+			}
+
+			return $label;
+		}
+
+	}
+
+	public function generate_error_details( $response ){
+
+		$error_exception 	= '';
+		$error_details 		= '';
+
+		foreach( $response as $key => $data ){
+
+			if( $key == 'title' ){
+				$error_exception .= $data . '<br />';
+			}
+
+			if( $key != 'title' && $key != 'type' ){
+				if( is_array( $data ) ){
+					
+					$detail_string = '';
+					
+					foreach( $data as $detail_key => $detail ){
+
+						$detail_string .= $detail_key . ': ' . $detail;
+						
+					}
+
+					$error_details .= '<li>' . $detail_string . '</li>';
+				}
+				
+			}
+		}
+
+		$error_exception .= '<ul>' . $error_details . '</ul>';
+
+		return $error_exception;
 	}
 
 	/**
@@ -109,10 +201,10 @@ class Client extends API_Client {
 	 */
 	protected function item_info_to_request_data( Item_Info $item_info ) {
 
-		$package_id 			= $item_info->shipment['prefix'] . sprintf('%07d', $item_info->shipment['order_id'] );
+		$package_id = $item_info->shipment['prefix'] . sprintf( '%07d', $item_info->shipment['order_id'] );
 
 		$request_data = array(
-			'pickup' 				=> $item_info->shipment['pickup_id'],
+			'pickup' 				=> $this->pickup_id,
 			'distributionCenter'	=> $item_info->shipment['distribution_center'],
 			'orderedProductId' 		=> $item_info->shipment['product_code'],
 			'consigneeAddress' 		=> $item_info->consignee,
@@ -162,38 +254,52 @@ class Client extends API_Client {
 	}
 
 	/**
-	 * Retrieves the label for a DHL item, by its barcode.
+	 * Create manifest
 	 *
-	 * @param string $item_barcode The barcode of the item whose label to retrieve.
+	 * @since [*next-version*]
 	 *
-	 * @return string The raw PDF data for the item's label.
+	 * @param int $order_id The order id.
 	 *
-	 * @throws Exception
 	 */
-	public function get_label( $pickup_id, $package_id )
-	{
+	public function create_manifest( $pickup, $package_id ){
 
-		$response = $this->get(
-			$this->get_label_route( $pickup_id ),
-			array(
-				'packageId' => $package_id
-			),
-			array(
-				'Accept' => 'application/pdf'
+		$route 		= $this->create_manifest_route();
+		$data 		= array(
+			'pickup' 		=> $pickup,
+			'manifests' 	=> array(
+				array( 
+					'packageIds' => array(  $package_id )
+				)
 			)
 		);
 
-		if ($response->status === 200) {
-			return $response->body;
+		$response 			= $this->post($route, $data, $this->header_request() );
+		$decoded_response 	= json_decode( $response->body );
+		
+		if ( $response->status === 200 ) {
+			
+			return $decoded_response;
+
 		}
 
-		$message = ! empty( $response->body->messages )
-			? implode( ', ', $response->body->messages )
-			: strval( $response->body );
-
 		throw new Exception(
-			sprintf( __( 'API error: %s', 'pr-shipping-dhl' ), $message )
+			sprintf(
+				__( 'Failed to create label: %s', 'pr-shipping-dhl' ),
+				$decoded_response->title
+			)
 		);
+	}
+
+	public function header_request( $content_type = true ){
+
+		$headers 	= array(
+			'Accept' 		=> 'application/json',
+		);
+
+		if( $content_type == true ){
+			$headers['Content-Type'] = 'application/json';
+		}
+		return $headers;
 	}
 
 	/**
@@ -231,6 +337,17 @@ class Client extends API_Client {
 	 */
 	protected function get_label_route( $pickup_id ) {
 		return sprintf( 'shipping/v4/label/%s', $pickup_id );
+	}
+
+	/**
+	 * Prepares a manifest API route.
+	 *
+	 * @since [*next-version*]
+	 *
+	 * @return string
+	 */
+	protected function create_manifest_route() {
+		return 'shipping/v4/manifest/';
 	}
 
 }

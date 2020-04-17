@@ -94,6 +94,7 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 	protected function create_api_client() {
 		// Create the API client, using this instance's driver and auth objects
 		return new Client(
+			$this->get_pickup_id(),
 			$this->get_api_url(),
 			$this->api_driver,
 			$this->api_auth
@@ -187,6 +188,19 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 			$this->get_setting( 'dhl_api_key' ),
 			$this->get_setting( 'dhl_api_secret' ),
 		);
+	}
+
+	/**
+	 * Retrieves the DHL Pickup Account ID
+	 *
+	 * @since [*next-version*]
+	 *
+	 * @return string
+	 *
+	 * @throws Exception If failed to retrieve the EKP from the settings.
+	 */
+	public function get_pickup_id() {
+		return $this->get_setting( 'dhl_pickup_id' );
 	}
 
 	/**
@@ -313,25 +327,23 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 
 		// Create the shipping label
 		$label_response 	= $this->api_client->create_label( $item_info );
-		$label_package_id 	= $label_response->labels[0]->packageId;
-		$dhl_package_id 	= $label_response->labels[0]->dhlPackageId;
-		$label_data 		= base64_decode( $label_response->labels[0]->labelData );
-		$tracking_id 		= $label_response->labels[0]->trackingId;
+		$label_data 		= base64_decode( $label_response['labelData'] );
+		$dhl_package_id 	= $label_response['dhlPackageId'];
+		$package_id 		= $label_response['packageId'];
 
 		$item_file_info 	= $this->save_dhl_label_file( 'item', $label_package_id, $label_data );
 
 		// Save it in the order
-		update_post_meta( $order_id, 'pr_dhl_ecsus_tracking_id', $tracking_id );
-		update_post_meta( $order_id, 'pr_dhl_ecsus_package_id', $label_package_id );
+		update_post_meta( $order_id, 'pr_dhl_ecsus_dhl_package_id', $dhl_package_id );
+		update_post_meta( $order_id, 'pr_dhl_ecsus_package_id', $$package_id );
 		
 		//$this->save_dhl_label_file( 'item', $item_barcode, $label_pdf_data );
 
 		return array(
 			'label_path' 			=> $item_file_info->path,
 			'label_url' 			=> $item_file_info->url,
-			'package_id' 			=> $label_package_id,
+			'package_id' 			=> $package_id,
 			'dhl_package_id' 		=> $dhl_package_id,
-			'tracking_id' 			=> $tracking_id,
 		);
 	}
 
