@@ -116,7 +116,7 @@ class Client extends API_Client {
 	 */
 	public function get_label( $package_id ){
 
-		$route 		= $this->get_label_route( $this->pickup_id );
+		$route 		= $this->get_label_route();
 		$data 		= array( 'packageId' => $package_id );
 
 		$response 			= $this->get($route, $data, $this->header_request( false ) );
@@ -290,6 +290,10 @@ class Client extends API_Client {
 		);
 	}
 
+	public function download_manifest( $request_id ){
+
+	}
+
 	public function header_request( $content_type = true ){
 
 		$headers 	= array(
@@ -335,8 +339,8 @@ class Client extends API_Client {
 	 *
 	 * @return string
 	 */
-	protected function get_label_route( $pickup_id ) {
-		return sprintf( 'shipping/v4/label/%s', $pickup_id );
+	protected function get_label_route() {
+		return sprintf( 'shipping/v4/label/%s', $this->pickup_id );
 	}
 
 	/**
@@ -347,7 +351,18 @@ class Client extends API_Client {
 	 * @return string
 	 */
 	protected function create_manifest_route() {
-		return 'shipping/v4/manifest/';
+		return 'shipping/v4/manifest';
+	}
+
+	/**
+	 * Prepares a manifest API route.
+	 *
+	 * @since [*next-version*]
+	 *
+	 * @return string
+	 */
+	public function get_manifest_route() {
+		return sprintf( $this->create_manifest_route() . '/%s', $this->pickup_id );
 	}
 
 }
