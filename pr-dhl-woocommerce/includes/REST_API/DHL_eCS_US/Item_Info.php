@@ -169,7 +169,7 @@ class Item_Info {
 				'default' 	=> '',
 				'validate' => function( $value ) {
 
-					if( empty( $value ) && $this->$isCrossBorder == true ) {
+					if( empty( $value ) && $this->isCrossBorder == true ) {
 						throw new Exception( __( 'Shipment "Duties" is empty!', 'pr-shipping-dhl' ) );
 					}
 				},
