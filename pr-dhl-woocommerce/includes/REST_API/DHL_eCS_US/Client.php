@@ -90,10 +90,12 @@ class Client extends API_Client {
 		$data 		= $this->item_info_to_request_data( $item_info );
 
 		$response 			= $this->post($route, $data, $this->header_request() );
-		$decoded_response 	= json_decode( $response->body );
-		
+		error_log( 'create label' );
+		error_log( print_r( $response, true ) );
+
 		if ( $response->status === 200 ) {
 			
+			$decoded_response = json_decode( $response->body );
 			return $this->get_label_content( $decoded_response );
 
 		}
@@ -101,7 +103,7 @@ class Client extends API_Client {
 		throw new Exception(
 			sprintf(
 				__( 'Failed to create label: %s', 'pr-shipping-dhl' ),
-				$this->generate_error_details( $decoded_response )
+				$this->generate_error_details( $response )
 			)
 		);
 	}
@@ -121,17 +123,18 @@ class Client extends API_Client {
 		$data 		= array( 'packageId' => $package_id );
 
 		$response 			= $this->get($route, $data, $this->header_request( false ) );
-		$decoded_response 	= json_decode( $response->body, true );
 		
 		if ( $response->status === 200 ) {
 
+			$decoded_response 	= json_decode( $response->body, true );
 			return $this->get_label_content( $decoded_response );
+
 		}
 
 		throw new Exception(
 			sprintf(
 				__( 'Failed to create label: %s', 'pr-shipping-dhl' ),
-				$this->generate_error_details( $decoded_response )
+				$this->generate_error_details( $response )
 			)
 		);
 	}
@@ -165,31 +168,43 @@ class Client extends API_Client {
 		$error_exception 	= '';
 		$error_details 		= '';
 
-		foreach( $response as $key => $data ){
-
-			if( $key == 'title' ){
-				$error_exception .= $data . '<br />';
-			}
-
-			if( $key != 'title' && $key != 'type' ){
-				if( is_array( $data ) ){
-					
-					$detail_string = '';
-					
-					foreach( $data as $detail_key => $detail ){
-
-						$detail_string .= $detail_key . ': ' . $detail;
-						
-					}
-
-					$error_details .= '<li>' . $detail_string . '</li>';
-				}
-				
-			}
+		if( isset( $response->body->title ) ){
+			$error_exception .= $response->body->title . '<br />';
 		}
 
-		$error_exception .= '<ul>' . $error_details . '</ul>';
+		if( isset( $response->body->type ) ){
+			$error_details .= '<span>' . esc_html__( 'type', 'pr-dhl-woocommerce' ) . ' : ' . $response->body->type . '</span><br />';
+		}
+		
+		if( is_array( $response ) ){
 
+			foreach( $response as $key => $data ){
+	
+				if( $key != 'title' && $key != 'type' ){
+					if( is_array( $data ) ){
+						
+						$detail_string = '';
+						
+						foreach( $data as $detail_key => $detail ){
+	
+							$detail_string .= $detail_key . ': ' . $detail;
+							
+						}
+	
+						$error_details .= '<span>' . $detail_string . '</span>';
+					}
+					
+				}
+			}
+
+		}
+		
+		if( !empty( $error_details ) ){
+
+			$error_exception .= $error_details;
+
+		}
+		
 		return $error_exception;
 	}
 
