@@ -145,8 +145,6 @@ class Item_Info {
 			),
 			'dhl_product' => array(
 				'rename' 	=> 'product_code',
-				'default' 	=> 'PDO',
-				
 			),
 			'weight'     => array(
 				'sanitize' => function ( $weight ) use ($self) {
