@@ -38,30 +38,7 @@ class PR_DHL_WC_Method_Paket extends WC_Shipping_Method {
 		$this->init_settings();
 
 		add_action( 'woocommerce_update_options_shipping_' . $this->id, array( $this, 'process_admin_options' ) );
-		// add_action( 'admin_enqueue_scripts', array( $this, 'load_admin_scripts' ) );
 		
-	}
-
-	public function load_admin_scripts( $hook ) {
-		
-		if( 'woocommerce_page_wc-settings' != $hook || !(isset( $_GET['section'] ) && $_GET['section'] == $this->id) ) {
-			// Only applies to WC Settings panel
-			return;
-		}
-		
-		/*
-	    $test_con_data = array( 
-	    					'ajax_url' => admin_url( 'admin-ajax.php' ),
-						    'loader_image'   => admin_url( 'images/loading.gif' ),
-	    					'test_con_nonce' => wp_create_nonce( 'pr-dhl-test-con' ) 
-	    				);
-
-		// wp_enqueue_style( 'wc-shipment-dhl-label-css', PR_DHL_PLUGIN_DIR_URL . '/assets/css/pr-dhl-admin.css' );		
-		wp_enqueue_script( 'wc-shipment-dhl-testcon-js', PR_DHL_PLUGIN_DIR_URL . '/assets/js/pr-dhl-test-connection.js', array('jquery'), PR_DHL_VERSION );
-		// in JavaScript, object properties are accessed as ajax_object.ajax_url, ajax_object.we_value
-		wp_localize_script( 'wc-shipment-dhl-testcon-js', 'dhl_test_con_obj', $test_con_data );
-		*/
-
 	}
 
 	/**
@@ -424,30 +401,6 @@ class PR_DHL_WC_Method_Paket extends WC_Shipping_Method {
 				'dhl_preferred_exclusion_sat' => array(
 					'type'              => 'checkbox',
 					'label'             => __( 'Saturday', 'pr-shipping-dhl' ),
-				),
-				'dhl_preferred_time' => array(
-					'title'             => __( 'Preferred Time', 'pr-shipping-dhl' ),
-					'type'              => 'checkbox',
-					'label'             => __( 'Enable Preferred Time', 'pr-shipping-dhl' ),
-					'default'           => 'yes',
-					'description'       => __( 'Enabling this will display a front-end option for the user to select their preferred time of delivery.', 'pr-shipping-dhl' ),
-					'desc_tip'          => true,
-				),
-				'dhl_preferred_time_cost' => array(
-					'title'             => __( 'Preferred Time Price', 'pr-shipping-dhl' ),
-					'type'              => 'text',
-					'description'       => __( 'Insert gross value as surcharge for the preferred time. Insert 0 to offer service for free.', 'pr-shipping-dhl' ),
-					'desc_tip'          => true,
-					'default'           => '4.8',
-					'class'				=> 'wc_input_decimal'
-				),
-				'dhl_preferred_day_time_cost' => array(
-					'title'             => __( 'Preferred Day and Time Price', 'pr-shipping-dhl' ),
-					'type'              => 'text',
-					'description'       => __( 'Insert gross value as surcharge for the combination of preferred day and time. Insert 0 to offer service for free.', 'pr-shipping-dhl' ),
-					'desc_tip'          => true,
-					'default'           => '4.8',
-					'class'				=> 'wc_input_decimal'
 				),
 				'dhl_preferred_location' => array(
 					'title'             => __( 'Preferred Location', 'pr-shipping-dhl' ),

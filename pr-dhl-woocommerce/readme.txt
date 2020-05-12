@@ -5,9 +5,9 @@ Tags: DPDHL, original DHL, DHL, DHL eCommerce, DHL express, DHL Parcel NL, DHL P
 Requires at least: 4.1
 Requires PHP: 5.6
 Tested up to: 5.2
-Stable tag: 1.6.4
+Stable tag: 1.6.9
 WC requires at least: 2.6.14
-WC tested up to: 3.8
+WC tested up to: 4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,6 +76,32 @@ Click [here](www.dhl.com/faqs) for our FAQs or check out our [integration page](
 
 
 == Changelog ==
+
+= 1.7.0 =
+* DHL Paket: Remove "Preferred Time" service
+* DHL Paket: Remove "DHL Paket Taggleich" product
+
+= 1.6.9 =
+* DHL Parcel: Updated ServicePoint selector width to scale to full width
+* DHL Parcel: Updated ServicePoint selector to block the enter key on input to prevent accidental form submission
+* DHL Parcel: Fixed an issue that caused PHP warning errors on pages with cart data
+* DHL Parcel: Updated translation texts
+
+= 1.6.8 =
+* DHL Paket: Fix label creation error message to display correctly
+
+= 1.6.7 =
+* DHL Parcel: Added a postnumber input pop-up for Packstations that require it with the mapless locator
+* DHL Parcel: Fixed an issue with logged in users not seeing shipping methods in the checkout
+
+= 1.6.6 =
+* Deutsche Post: Fix item level value formatting
+* Bug Fix: WC 4.0 compatibility with "Test Connection" setting
+
+= 1.6.5 =
+* Deutsche Post: Add merchant phone number for "Express" customers
+* Deutsche Post: Modify settings descriptions
+* Update "WC tested up to" "4.0"
 
 = 1.6.4 =
 * DHL Parcel: Added an error message when trying to create a label without country information
