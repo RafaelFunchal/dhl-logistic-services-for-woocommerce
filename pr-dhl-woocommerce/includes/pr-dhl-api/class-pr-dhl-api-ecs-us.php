@@ -3,7 +3,7 @@
 use PR\DHL\REST_API\DHL_eCS_US\Auth;
 use PR\DHL\REST_API\DHL_eCS_US\Client;
 use PR\DHL\REST_API\DHL_eCS_US\Item_Info;
-use PR\DHL\REST_API\Drivers\JSON_API_Driver;
+use PR\DHL\REST_API\Drivers\FORM_JSON_API_Driver;
 use PR\DHL\REST_API\Drivers\Logging_Driver;
 use PR\DHL\REST_API\Drivers\WP_API_Driver;
 use PR\DHL\REST_API\Interfaces\API_Auth_Interface;
@@ -119,7 +119,7 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 
 		// This will prepare requests given to the previous driver for JSON content
 		// and parse responses returned from it as JSON.
-		$driver = new JSON_API_Driver( $driver );
+		$driver = new FORM_JSON_API_Driver( $driver );
 
 		//, decorated using the JSON driver decorator class
 		return $driver;

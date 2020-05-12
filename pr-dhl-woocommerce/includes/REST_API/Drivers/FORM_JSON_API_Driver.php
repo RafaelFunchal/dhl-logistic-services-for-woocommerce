@@ -46,14 +46,21 @@ class FORM_JSON_API_Driver extends JSON_API_Driver {
 		if (empty($request->headers[ parent::H_ACCEPT ])) {
 			$request->headers[ parent::H_ACCEPT ] = parent::JSON_CONTENT_TYPE;
 		}
-
+		
 		// For POST requests, encode the body and set the content type and length
 		if ( $request->type === Request::TYPE_POST ) {
 
 			if( empty( $request->headers[ parent::H_CONTENT_TYPE ] ) ){
 
-				$request->headers[ parent::H_CONTENT_TYPE ] = static::FORM_CONTENT_TYPE;
+				$request->headers[ parent::H_CONTENT_TYPE ] = parent::JSON_CONTENT_TYPE;
 
+			}
+
+			if( $request->headers[ parent::H_CONTENT_TYPE ] == parent::JSON_CONTENT_TYPE ){
+
+				$request->body = json_encode( $request->body );
+				$request->headers[ parent::H_CONTENT_LENGTH ] = strlen( $request->body );
+				
 			}
 			
 		}
