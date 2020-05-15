@@ -146,6 +146,15 @@ class Item_Info {
 			'dhl_product' => array(
 				'rename' 	=> 'product_code',
 			),
+			'description' 	=> array(
+			    'default'   => '',
+				'validate' => function( $value ) {
+
+					if( empty( $value ) && $this->isCrossBorder ) {
+						throw new Exception( __( 'Shipment "Description" is empty!', 'pr-shipping-dhl' ) );
+					}
+				},
+			),
 			'weight'     => array(
 				'sanitize' => function ( $weight ) use ($self) {
 

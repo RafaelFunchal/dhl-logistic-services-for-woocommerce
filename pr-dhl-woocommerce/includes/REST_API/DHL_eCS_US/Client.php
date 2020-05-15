@@ -88,10 +88,14 @@ class Client extends API_Client {
 
 		$route 		= $this->create_label_route( $item_info->shipment['label_format'] );
 		$data 		= $this->item_info_to_request_data( $item_info );
+		
+		//error_log( 'creat_label' );
+		//error_log( print_r( $data, true ) );
 
 		$response 			= $this->post($route, $data, $this->header_request() );
-		error_log( 'create label' );
-		error_log( print_r( $response, true ) );
+
+		//error_log( 'after post' );
+		//error_log( print_r( $response, true ) );
 
 		if ( $response->status === 200 ) {
 			
@@ -123,7 +127,8 @@ class Client extends API_Client {
 		$data 		= array( 'packageId' => $package_id );
 
 		$response 			= $this->get($route, $data, $this->header_request( false ) );
-		
+		//error_log( 'Client get_label' );
+		//error_log( print_r( $response, true ) );
 		if ( $response->status === 200 ) {
 
 			$decoded_response 	= json_decode( $response->body, true );
@@ -226,7 +231,8 @@ class Client extends API_Client {
 			'consigneeAddress' 		=> $item_info->consignee,
 			'returnAddress' 		=> $item_info->shipper,
 			'packageDetail' 		=> array(
-				'packageId' 	=> $package_id,
+				'packageId' 	=> $package_id . time(),
+				'packageDescription' => $item_info->shipment['description'],
 				'weight' 		=> array(
 					'value' 		=> $item_info->shipment['weight'],
 					'unitOfMeasure'	=> $item_info->shipment['weightUom'],

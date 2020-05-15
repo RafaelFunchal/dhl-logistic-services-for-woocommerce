@@ -330,11 +330,11 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 		$label_response 	= $this->api_client->create_label( $item_info );
 		$label_data 		= ( $label_format == 'ZPL' )? $label_response['labelData'] : base64_decode( $label_response['labelData'] );
 
-		$item_file_info 	= $this->save_dhl_label_file( 'item', $package_id, $label_data );
+		$item_file_info 	= $this->save_dhl_label_file( 'item', $label_response['packageId'], $label_data );
 
 		// Save it in the order
-		update_post_meta( $order_id, 'pr_dhl_ecsus_dhl_package_id', $dhl_package_id );
-		update_post_meta( $order_id, 'pr_dhl_ecsus_package_id', $$package_id );
+		update_post_meta( $order_id, 'pr_dhl_ecsus_dhl_package_id', $label_response['dhlPackageId'] );
+		update_post_meta( $order_id, 'pr_dhl_ecsus_package_id', $label_response['packageId'] );
 		
 		//$this->save_dhl_label_file( 'item', $item_barcode, $label_pdf_data );
 

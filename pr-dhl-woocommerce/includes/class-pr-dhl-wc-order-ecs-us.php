@@ -173,6 +173,17 @@ class PR_DHL_WC_Order_eCS_US extends PR_DHL_WC_Order {
 		// Get package prefix
 		$args['order_details']['prefix'] = $this->shipping_dhl_settings['dhl_prefix'];
 
+		// Get package prefix
+		if ( ! empty( $dhl_label_items['pr_dhl_description'] ) ) {
+			$args['order_details']['description'] = $dhl_label_items['pr_dhl_description'];
+		} else {
+			// If description is empty and it is an international shipment throw an error
+			if ( $this->is_crossborder_shipment( $order_id ) ) {
+				throw new Exception( __('The package description cannot be empty!', 'pr-shipping-dhl') );
+				
+			}			
+		}
+
 		if ( isset( $this->shipping_dhl_settings['dhl_order_note'] ) && $this->shipping_dhl_settings['dhl_order_note'] == 'yes' ) {
 
 			if ( defined( 'WOOCOMMERCE_VERSION' ) && version_compare( WOOCOMMERCE_VERSION, '3.0', '>=' ) ) {
