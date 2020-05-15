@@ -326,8 +326,9 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 		}
 
 		// Create the shipping label
+		$label_format 		= $args['dhl_settings']['label_format'];
 		$label_response 	= $this->api_client->create_label( $item_info );
-		$label_data 		= base64_decode( $label_response['labelData'] );
+		$label_data 		= ( $label_format == 'ZPL' )? $label_response['labelData'] : base64_decode( $label_response['labelData'] );
 		$dhl_package_id 	= $label_response['dhlPackageId'];
 		$package_id 		= $label_response['packageId'];
 
@@ -383,20 +384,6 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 	}
 
 	/**
-	 * Retrieves the filename for DHL order label files (a.k.a. merged AWB label files).
-	 *
-	 * @since [*next-version*]
-	 *
-	 * @param string $order_id The DHL order ID.
-	 * @param string $format The file format.
-	 *
-	 * @return string
-	 */
-	public function get_dhl_order_label_file_name( $order_id, $format = 'pdf' ) {
-		return sprintf('dhl-waybill-order-%s.%s', $order_id, $format);
-	}
-
-	/**
 	 * Retrieves the file info for a DHL item label file.
 	 *
 	 * @since [*next-version*]
@@ -416,25 +403,6 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 	}
 
 	/**
-	 * Retrieves the file info for DHL order label files (a.k.a. merged AWB label files).
-	 *
-	 * @since [*next-version*]
-	 *
-	 * @param string $order_id The DHL order ID.
-	 * @param string $format The file format.
-	 *
-	 * @return object An object containing the file "path" and "url" strings.
-	 */
-	public function get_dhl_order_label_file_info( $order_id, $format = 'pdf') {
-		$file_name = $this->get_dhl_order_label_file_name( $order_id, $format);
-
-		return (object) array(
-			'path' => PR_DHL()->get_dhl_label_folder_dir() . $file_name,
-			'url' => PR_DHL()->get_dhl_label_folder_url() . $file_name,
-		);
-	}
-
-	/**
 	 * Retrieves the file info for any DHL label file, based on type.
 	 *
 	 * @since [*next-version*]
@@ -446,13 +414,10 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 	 */
 	public function get_dhl_label_file_info( $type, $key ) {
 
-		// Return file info for "order" type
-		if ( $type === 'order' ) {
-			return $this->get_dhl_order_label_file_info( $key );
-		}
+		$label_format = strtolower( $this->get_setting( 'dhl_label_format' ) );
 
 		// Return info for "item" type
-		return $this->get_dhl_item_label_file_info( $key );
+		return $this->get_dhl_item_label_file_info( $key, $label_format );
 	}
 
 	/**
@@ -512,66 +477,6 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 		if (!$res) {
 			throw new Exception(__('DHL AWB Label could not be deleted!', 'pr-shipping-dhl'));
 		}
-	}
-
-	/**
-	 * Checks if an order label file already exist, and if not fetches it from the API and saves it.
-	 *
-	 * @since [*next-version*]
-	 *
-	 * @param string $order_id The DHL order ID.
-	 *
-	 * @return object An object containing the "path" and "url" to the label file.
-	 *
-	 * @throws Exception
-	 */
-	public function create_dhl_order_label_file( $order_id )
-	{
-		$file_info = $this->get_dhl_order_label_file_info( $order_id );
-
-		// Skip creating the file if it already exists
-		if ( file_exists( $file_info->path ) ) {
-			return $file_info;
-		}
-
-		// Get the order with the given ID
-		$order = $this->api_client->get_order( $order_id );
-		if ($order === null) {
-			throw new Exception("DHL order {$order_id} does not exist.");
-		}
-
-		// For multiple shipments, maybe create each label file and then merge them
-		$loader = PR_DHL_Libraryloader::instance();
-		$pdfMerger = $loader->get_pdf_merger();
-
-		if( $pdfMerger === null ){
-
-			throw new Exception( __('Library conflict, could not merge PDF files. Please download PDF files individually.', 'pr-shipping-dhl') );
-		}
-
-		foreach ( $order['shipments'] as $shipment ) {
-			// Create the single AWB label file
-			$awb_label_info = $this->create_dhl_awb_label_file( $shipment->awb );
-
-			// Ensure file exists
-			if ( ! file_exists( $awb_label_info->path ) ) {
-				continue;
-			}
-
-			// Ensure it is a PDF file
-			$ext = pathinfo($awb_label_info->path, PATHINFO_EXTENSION);
-			if ( stripos($ext, 'pdf') === false) {
-				throw new Exception( __('Not all the file formats are the same.', 'pr-shipping-dhl') );
-			}
-
-			// Add to merge queue
-			$pdfMerger->addPDF( $awb_label_info->path, 'all' );
-		}
-
-		// Merge all files in the queue
-		$pdfMerger->merge( 'file',  $file_info->path );
-
-		return $file_info;
 	}
 
 	/**
