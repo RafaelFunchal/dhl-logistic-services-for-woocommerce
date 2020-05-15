@@ -119,7 +119,7 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 
 		// This will prepare requests given to the previous driver for JSON content
 		// and parse responses returned from it as JSON.
-		$driver = new FORM_JSON_API_Driver( $driver );
+		$driver = new JSON_API_Driver( $driver );
 
 		//, decorated using the JSON driver decorator class
 		return $driver;
