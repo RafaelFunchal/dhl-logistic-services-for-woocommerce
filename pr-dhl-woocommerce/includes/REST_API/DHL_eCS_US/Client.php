@@ -95,7 +95,7 @@ class Client extends API_Client {
 
 		if ( $response->status === 200 ) {
 			
-			$decoded_response = json_decode( $response->body );
+			$decoded_response = json_decode(json_encode($response->body), true );
 			return $this->get_label_content( $decoded_response );
 
 		}

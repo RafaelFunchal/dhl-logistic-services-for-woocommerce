@@ -3,7 +3,7 @@
 use PR\DHL\REST_API\DHL_eCS_US\Auth;
 use PR\DHL\REST_API\DHL_eCS_US\Client;
 use PR\DHL\REST_API\DHL_eCS_US\Item_Info;
-use PR\DHL\REST_API\Drivers\FORM_JSON_API_Driver;
+use PR\DHL\REST_API\Drivers\JSON_API_Driver;
 use PR\DHL\REST_API\Drivers\Logging_Driver;
 use PR\DHL\REST_API\Drivers\WP_API_Driver;
 use PR\DHL\REST_API\Interfaces\API_Auth_Interface;
@@ -331,7 +331,7 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 		$dhl_package_id 	= $label_response['dhlPackageId'];
 		$package_id 		= $label_response['packageId'];
 
-		$item_file_info 	= $this->save_dhl_label_file( 'item', $label_package_id, $label_data );
+		$item_file_info 	= $this->save_dhl_label_file( 'item', $package_id, $label_data );
 
 		// Save it in the order
 		update_post_meta( $order_id, 'pr_dhl_ecsus_dhl_package_id', $dhl_package_id );
