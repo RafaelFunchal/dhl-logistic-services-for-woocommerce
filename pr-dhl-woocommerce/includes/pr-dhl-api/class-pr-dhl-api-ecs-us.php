@@ -329,8 +329,6 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 		$label_format 		= $args['dhl_settings']['label_format'];
 		$label_response 	= $this->api_client->create_label( $item_info );
 		$label_data 		= ( $label_format == 'ZPL' )? $label_response['labelData'] : base64_decode( $label_response['labelData'] );
-		$dhl_package_id 	= $label_response['dhlPackageId'];
-		$package_id 		= $label_response['packageId'];
 
 		$item_file_info 	= $this->save_dhl_label_file( 'item', $package_id, $label_data );
 
@@ -343,8 +341,8 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 		return array(
 			'label_path' 			=> $item_file_info->path,
 			'label_url' 			=> $item_file_info->url,
-			'package_id' 			=> $package_id,
-			'dhl_package_id' 		=> $dhl_package_id,
+			'tracking_number' 		=> $label_response['packageId'],
+			'dhl_package_id' 		=> $label_response['dhlPackageId'],
 		);
 	}
 
