@@ -210,6 +210,21 @@ class Client extends API_Client {
 	}
 
 	/**
+     * Get message version.
+     *
+     * @return string The version of the message.
+     */
+    protected function get_package_id( $prefix, $id ){
+        if ( empty( $prefix ) ) {
+            $shipment_parts = array( sprintf('%07d', $id ), time() );
+        } else {
+            $shipment_parts = array( $prefix, sprintf('%07d', $id ), time() );
+        }
+
+        return implode('-', $shipment_parts);
+    }
+
+	/**
 	 * Transforms an item info object into a request data array.
 	 *
 	 * @param Item_Info $item_info The item info object to transform.
@@ -218,7 +233,7 @@ class Client extends API_Client {
 	 */
 	protected function item_info_to_request_data( Item_Info $item_info ) {
 
-		$package_id = $item_info->shipment['prefix'] . sprintf( '%07d', $item_info->shipment['order_id'] );
+		$package_id = $this->get_package_id( $item_info->shipment['prefix'], $item_info->shipment['order_id'] );
 
 		$request_data = array(
 			'pickup' 				=> $this->pickup_id,
@@ -227,7 +242,7 @@ class Client extends API_Client {
 			'consigneeAddress' 		=> $item_info->consignee,
 			'returnAddress' 		=> $item_info->shipper,
 			'packageDetail' 		=> array(
-				'packageId' 	=> $package_id . time(),
+				'packageId' 	=> $package_id,
 				'packageDescription' => $item_info->shipment['description'],
 				'weight' 		=> array(
 					'value' 		=> $item_info->shipment['weight'],
