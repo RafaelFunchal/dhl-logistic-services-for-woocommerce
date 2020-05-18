@@ -348,38 +348,18 @@ class PR_DHL_WC_Order_eCS_US extends PR_DHL_WC_Order {
 
 	public function get_bulk_actions() {
 
-		$shop_manager_actions = array();
-
 		$shop_manager_actions = array(
-			'pr_dhl_create_labels'      => __( 'DHL Create Labels', 'pr-shipping-dhl' )
+			'pr_dhl_create_labels'      => __( 'DHL Create Labels', 'pr-shipping-dhl' ),
+			'pr_dhl_create_manifest' 	=> __( 'DHL Create Manifests', 'pr-shipping-dhl' )
 		);
 
-		if ( isset( $this->shipping_dhl_settings['dhl_bulk_product_int']) && ($bulk_product_int = $this->shipping_dhl_settings['dhl_bulk_product_int'] ) ) {
-			foreach ($bulk_product_int as $key => $value) {
-				$shop_manager_actions += array(
-					"pr_dhl_create_labels:int:$value"      => __( "DHL Create Labels - $value", 'pr-shipping-dhl' )
-					);
-			}
-		}
-
-		if ( isset($this->shipping_dhl_settings['dhl_bulk_product_dom']) && ($bulk_product_dom = $this->shipping_dhl_settings['dhl_bulk_product_dom'] ) ) {
-			foreach ($bulk_product_dom as $key => $value) {
-				$shop_manager_actions += array(
-					"pr_dhl_create_labels:dom:$value"      => __( "DHL Create Labels - $value", 'pr-shipping-dhl' )
-					);
-			}
-		}
-
-		$shop_manager_actions += array(
-			'pr_dhl_handover'      => __( 'DHL Print Handover', 'pr-shipping-dhl' )
-		);
 
 		return $shop_manager_actions;
 	}
 
 	public function validate_bulk_actions( $action, $order_ids ) {
 		$message = '';
-		if ( 'pr_dhl_handover' === $action ) {
+		if ( 'pr_dhl_create_manifest' === $action ) {
 			// Ensure the selected orders have a label created, otherwise don't create handover
 			foreach ( $order_ids as $order_id ) {
 				$label_tracking_info = $this->get_dhl_label_tracking( $order_id );
@@ -413,35 +393,61 @@ class PR_DHL_WC_Order_eCS_US extends PR_DHL_WC_Order {
 
 		$array_messages += parent::process_bulk_actions( $action, $order_ids, $orders_count, $dhl_force_product, $is_force_product_dom );
 
-		if ( 'pr_dhl_handover' === $action ) {
-			$redirect_url  = admin_url( 'edit.php?post_type=shop_order' );
-			$order_ids_hash = md5( json_encode( $order_ids ) );
-			// Save the order IDs in a option.
-			// Initially we were using a transient, but this seemed to cause issues
-			// on some hosts (mainly GoDaddy) that had difficulty in implementing a
-			// proper object cache override.
-			update_option( "pr_dhl_handover_order_ids_{$order_ids_hash}", $order_ids );
+		if ( 'pr_dhl_create_manifest' === $action ) {
+			$instance = PR_DHL()->get_dhl_factory();
+			$client = $instance->api_client;
 
-			$action_url = wp_nonce_url(
-				add_query_arg(
+			$package_ids = array();
+
+			foreach ($order_ids as $order_id) {
+
+				// Get the DHL package id for this WC order
+				$package_id = get_post_meta( $order_id, 'pr_dhl_ecsus_package_id', true );
+
+				if( $package_id ){
+					$package_ids[] = $package_id;
+				}
+			}
+
+			try {
+				$manifests = $instance->api_client->create_manifest( $package_ids );
+
+				foreach( $manifests as $manifest ){
+					$data = base64_decode( $manifest['manifestData'] );
+				}
+				/*
+				// Get the URL to download the order label file
+				$label_url = $this->generate_download_url( '/' . self::DHL_DOWNLOAD_AWB_LABEL_ENDPOINT . '/' . $dhl_order_id );
+
+				$manifest_link = sprintf(
+					'<a href="%1$s" target="_blank">%2$s</a>',
+					$label_url,
+					__('download file', 'pr-shipping-dhl')
+				);
+
+				$message = sprintf(
+					__( 'Finalized DHL Manifest - %2$s', 'pr-shipping-dhl' ),
+					$items_count,
+					$manifest_link
+				);
+
+				array_push(
+					$array_messages,
 					array(
-						'pr_dhl_action'   => 'print',
-						'order_id'        => $order_ids[0],
-						'order_ids'       => $order_ids_hash,
-					),
-					'' !== $redirect_url ? $redirect_url : admin_url()
-				),
-				'pr_dhl_handover'
-			);
-
-			$print_link = '<a href="' . $action_url .'" target="_blank">' . __( 'Print DHL handover.', 'pr-shipping-dhl' ) . '</a>';
-
-			$message = sprintf( __( 'DHL handover for %1$s order(s) created. %2$s', 'pr-shipping-dhl' ), $orders_count, $print_link );
-
-			array_push($array_messages, array(
-                'message' => $message,
-                'type' => 'success',
-            ));
+						'message' => $message,
+						'type'    => 'success',
+					)
+				);
+				*/
+			} catch (Exception $exception) {
+				array_push(
+					$array_messages,
+					array(
+						'message' => $exception->getMessage(),
+						'type'    => 'error',
+					)
+				);
+			}
 		}
 
 		return $array_messages;

@@ -294,36 +294,83 @@ class Client extends API_Client {
 	 * @param int $order_id The order id.
 	 *
 	 */
-	public function create_manifest( $pickup, $package_id ){
+	public function create_manifest( $package_ids ){
 
 		$route 		= $this->create_manifest_route();
 		$data 		= array(
-			'pickup' 		=> $pickup,
+			'pickup' 		=> $this->pickup_id,
 			'manifests' 	=> array(
 				array( 
-					'packageIds' => array(  $package_id )
+					'packageIds' => $package_ids
 				)
 			)
 		);
 
 		$response 			= $this->post($route, $data, $this->header_request() );
-		$decoded_response 	= json_decode( $response->body );
 		
 		if ( $response->status === 200 ) {
 			
-			return $decoded_response;
+			if( isset( $response->body->requestId ) ){
+
+				return $this->get_manifest( $response->body->requestId );
+
+			}else{
+				throw new Exception( __( 'DHL Manifest Request ID is not exist!', 'pr-shipping-dhl' ) );
+			}
 
 		}
 
 		throw new Exception(
 			sprintf(
 				__( 'Failed to create label: %s', 'pr-shipping-dhl' ),
-				$decoded_response->title
+				$this->generate_error_details( $response )
 			)
 		);
 	}
 
-	public function download_manifest( $request_id ){
+	public function get_manifest( $request_id ){
+
+		$route = $this->get_manifest_route( $request_id );
+
+		$response 			= $this->get($route, array(), $this->header_request() );
+		
+		if ( $response->status === 200 ) {
+			
+			$decoded_response = json_decode(json_encode($response->body), true );
+			return $this->get_manifest_content( $decoded_response );
+
+		}
+
+		throw new Exception(
+			sprintf(
+				__( 'Failed to create manifest: %s', 'pr-shipping-dhl' ),
+				$this->generate_error_details( $response )
+			)
+		);
+	}
+
+	public function get_manifest_content( $response ){
+
+		if( !isset( $response['manifests'] ) ){
+			throw new Exception( __( 'Manifest contents are not exist!', 'pr-shipping-dhl' ) );
+		}
+
+		foreach( $response['manifests'] as $manifest ){
+			if( !isset( $manifest['manifestData'] ) ){
+				throw new Exception( __( 'Manifest data is not exist!', 'pr-shipping-dhl' ) );
+			}
+
+			if( !isset( $manifest['manifestId'] ) ){
+				throw new Exception( __( 'Manifest ID is not exist!', 'pr-shipping-dhl' ) );
+			}
+
+			if( !isset( $manifest['format'] ) ){
+				throw new Exception( __( 'Manifest format is not exist!', 'pr-shipping-dhl' ) );
+			}
+
+		}
+
+		return $response['manifests'];
 
 	}
 
@@ -394,8 +441,8 @@ class Client extends API_Client {
 	 *
 	 * @return string
 	 */
-	public function get_manifest_route() {
-		return sprintf( $this->create_manifest_route() . '/%s', $this->pickup_id );
+	public function get_manifest_route( $request_id ) {
+		return sprintf( $this->create_manifest_route() . '/%s/%s', $this->pickup_id, $request_id );
 	}
 
 }
