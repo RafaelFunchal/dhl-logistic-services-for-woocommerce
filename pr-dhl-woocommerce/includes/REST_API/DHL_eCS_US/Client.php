@@ -178,34 +178,30 @@ class Client extends API_Client {
 		}
 
 		if( isset( $response->body->type ) ){
-			$error_details .= '<span>' . esc_html__( 'type', 'pr-dhl-woocommerce' ) . ' : ' . $response->body->type . '</span><br />';
+			$error_exception .= '<span>' . esc_html__( 'type', 'pr-dhl-woocommerce' ) . ' : ' . $response->body->type . '</span><br />';
 		}
 		
-		if( is_array( $response ) ){
+		if( isset( $response->body->invalidParams ) && is_array( $response->body->invalidParams ) ){
 
-			foreach( $response as $key => $data ){
-	
-				if( $key != 'title' && $key != 'type' ){
-					if( is_array( $data ) ){
-						
-						$detail_string = '';
-						
-						foreach( $data as $detail_key => $detail ){
-	
-							$detail_string .= $detail_key . ': ' . $detail;
-							
-						}
-	
-						$error_details .= '<span>' . $detail_string . '</span>';
-					}
+			foreach( $response->body->invalidParams as $key => $data ){
+					
+				$detail_string = '';
+				$decoded_error = json_decode(json_encode($data), true );
+
+				foreach( $decoded_error as $detail_key => $detail ){
+
+					$detail_string .= '<strong>' . $detail_key . '</strong> : ' . $detail . '<br />';
 					
 				}
+
+				$error_details .= '<span class="details">' . $detail_string . '</span>';
 			}
 
 		}
 		
 		if( !empty( $error_details ) ){
-
+			$error_exception .= '<br />';
+			$error_exception .= '<strong>' . __('Error details:', 'pr-dhl-woocommerce') . '</strong><br />';
 			$error_exception .= $error_details;
 
 		}
