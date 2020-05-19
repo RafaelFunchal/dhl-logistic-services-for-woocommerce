@@ -161,14 +161,16 @@ class PR_DHL_WC_Order_eCS_US extends PR_DHL_WC_Order {
 		$args['dhl_settings']['label_format'] 				= $this->shipping_dhl_settings['dhl_label_format'];
 
 		// Get DHL Pickup Address.
-		$args[ 'dhl_settings' ]['dhl_contact_name'] 		= $this->shipping_dhl_settings['dhl_contact_name'];
-		$args[ 'dhl_settings' ]['dhl_company_name'] 		= $this->shipping_dhl_settings['dhl_company_name'];
-		$args[ 'dhl_settings' ]['dhl_address_1'] 			= WC()->countries->get_base_address();
-		$args[ 'dhl_settings' ]['dhl_address_2'] 			= WC()->countries->get_base_address_2();
-		$args[ 'dhl_settings' ]['dhl_city'] 				= WC()->countries->get_base_city();
-		$args[ 'dhl_settings' ]['dhl_state'] 				= WC()->countries->get_base_state();
-		$args[ 'dhl_settings' ]['dhl_country'] 				= WC()->countries->get_base_country();
-		$args[ 'dhl_settings' ]['dhl_postcode'] 			= WC()->countries->get_base_postcode();
+		$args['dhl_settings']['dhl_contact_name'] 	= $this->shipping_dhl_settings['dhl_contact_name'];
+		$args['dhl_settings']['dhl_company_name'] 	= $this->shipping_dhl_settings['dhl_shipper_company'];
+		$args['dhl_settings']['dhl_address_1'] 		= $this->shipping_dhl_settings['dhl_shipper_address_1'];
+		$args['dhl_settings']['dhl_address_2'] 		= $this->shipping_dhl_settings['dhl_shipper_address_2'];
+		$args['dhl_settings']['dhl_city'] 			= $this->shipping_dhl_settings['dhl_shipper_address_city'];
+		$args['dhl_settings']['dhl_state'] 			= $this->shipping_dhl_settings['dhl_shipper_address_state'];
+		$args['dhl_settings']['dhl_country'] 		= $this->shipping_dhl_settings['dhl_shipper_address_country'];
+		$args['dhl_settings']['dhl_postcode'] 		= $this->shipping_dhl_settings['dhl_shipper_address_postcode'];
+		$args['dhl_settings']['dhl_phone'] 			= $this->shipping_dhl_settings['dhl_phone'];
+		$args['dhl_settings']['dhl_email'] 			= $this->shipping_dhl_settings['dhl_email'];
 
 		// Get package prefix
 		$args['order_details']['prefix'] = $this->shipping_dhl_settings['dhl_prefix'];

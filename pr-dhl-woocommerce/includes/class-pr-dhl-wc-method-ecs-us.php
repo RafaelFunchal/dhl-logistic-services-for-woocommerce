@@ -102,22 +102,6 @@ class PR_DHL_WC_Method_eCS_US extends WC_Shipping_Method {
 					'default'           => '',
 					'placeholder'		=> '0000500000'
 				),
-				'dhl_company_name' => array(
-					'title'             => __( 'Company Name', 'pr-shipping-dhl' ),
-					'type'              => 'text',
-					'description'       => __( 'The name of the company.', 'pr-shipping-dhl' ),
-					'desc_tip'          => true,
-					'default'           => '',
-					'placeholder'		=> 'Company Name'
-				),
-				'dhl_contact_name' => array(
-					'title'             => __( 'Contact Name', 'pr-shipping-dhl' ),
-					'type'              => 'text',
-					'description'       => __( 'The name of the merchant, used as contact information when creating DHL eCommerce orders.', 'pr-shipping-dhl' ),
-					'desc_tip'          => true,
-					'default'           => '',
-					'placeholder'		=> 'Contact Name'
-				),
 			);
 
 			$this->form_fields += array(
@@ -286,6 +270,85 @@ class PR_DHL_WC_Method_eCS_US extends WC_Shipping_Method {
 						'<a href="' . $log_path . '" target = "_blank">',
 						'</a>'
 					),
+				),
+				'dhl_shipper'           => array(
+					'title'           => __( 'Return Address', 'pr-shipping-dhl' ),
+					'type'            => 'title',
+					'description'     => __( 'Enter Return Address below.', 'pr-shipping-dhl' ),
+				),
+				'dhl_contact_name' => array(
+					'title'             => __( 'Name', 'pr-shipping-dhl' ),
+					'type'              => 'text',
+					'description'       => __( 'The account name will be provided by your local DHL sales organization and tells us where to pick up your shipments.', 'pr-shipping-dhl' ),
+					'desc_tip'          => true,
+					'default'           => ''
+				),
+				'dhl_email' => array(
+					'title'             => __( 'Email', 'pr-shipping-dhl' ),
+					'type'              => 'text',
+					'description'       => __( 'The email.', 'pr-shipping-dhl' ),
+					'desc_tip'          => true,
+					'default'           => '',
+					'placeholder'		=> 'name@email.com'
+				),
+				'dhl_phone' => array(
+					'title'             => __( 'Phone', 'pr-shipping-dhl' ),
+					'type'              => 'text',
+					'description'       => __( 'The phone.', 'pr-shipping-dhl' ),
+					'desc_tip'          => true,
+					'default'           => '',
+					'placeholder'		=> '0214543433'
+				),
+				'dhl_shipper_company' => array(
+					'title'             => __( 'Company', 'pr-shipping-dhl' ),
+					'type'              => 'text',
+					'description'       => __( 'Enter Return Company.', 'pr-shipping-dhl' ),
+					'desc_tip'          => true,
+					'default'           => ''
+				),
+				'dhl_shipper_address_1' => array(
+					'title'             => __( 'Address 1', 'pr-shipping-dhl' ),
+					'type'              => 'text',
+					'description'       => __( 'Enter Return Address.', 'pr-shipping-dhl' ),
+					'desc_tip'          => true,
+					'default'           => ''
+				),
+				'dhl_shipper_address_2' => array(
+					'title'             => __( 'Address 2', 'pr-shipping-dhl' ),
+					'type'              => 'text',
+					'description'       => __( 'Enter Return Address 2.', 'pr-shipping-dhl' ),
+					'desc_tip'          => true,
+					'default'           => ''
+				),
+				'dhl_shipper_address_city' => array(
+					'title'             => __( 'City', 'pr-shipping-dhl' ),
+					'type'              => 'text',
+					'description'       => __( 'Enter Return City.', 'pr-shipping-dhl' ),
+					'desc_tip'          => true,
+					'default'           => ''
+				),
+				'dhl_shipper_address_state' => array(
+					'title'             => __( 'State', 'pr-shipping-dhl' ),
+					'type'              => 'text',
+					'description'       => __( 'Enter Return County.', 'pr-shipping-dhl' ),
+					'desc_tip'          => true,
+					'default'           => ''
+				),
+				'dhl_shipper_address_country' => array(
+					'title'             => __( 'Country', 'pr-shipping-dhl' ),
+					'type'              => 'select',
+					'description'       => __( 'Enter Return Country.', 'pr-shipping-dhl' ),
+					'desc_tip'          => true,
+					'options'           => WC()->countries->get_countries(),
+					'class'				=> 'wc-enhanced-select',
+					'default'           => ''
+				),
+				'dhl_shipper_address_postcode' => array(
+					'title'             => __( 'Postcode', 'pr-shipping-dhl' ),
+					'type'              => 'text',
+					'description'       => __( 'Enter Return Postcode.', 'pr-shipping-dhl' ),
+					'desc_tip'          => true,
+					'default'           => ''
 				),
         	);
 
