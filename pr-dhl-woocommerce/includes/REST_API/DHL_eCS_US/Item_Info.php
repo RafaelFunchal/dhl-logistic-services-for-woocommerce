@@ -158,17 +158,12 @@ class Item_Info {
 			'weight'     => array(
 				'sanitize' => function ( $weight ) use ($self) {
 
-					$weight = $self->maybe_convert_to_kilograms( $weight, $self->weightUom );
 					$weight = ( $weight > 1 )? $weight : 1;
-					return $weight;
+					return floatval( $weight );
 				}
 			),
 			'weightUom'  => array(
 				'sanitize' => function ( $uom ) use ($self) {
-
-					if( strtolower($uom) == 'g' ) {
-                        $uom = 'kg';
-					}
 					
 					return strtoupper( $uom );
 				}
@@ -461,27 +456,6 @@ class Item_Info {
 
 			case 'oz':
 				return $weight / 35.274;
-		}
-
-		return $weight;
-	}
-
-	/**
-	 * Converts a given weight into grams, if necessary.
-	 *
-	 * @since [*next-version*]
-	 *
-	 * @param float $weight The weight amount.
-	 * @param string $uom The unit of measurement of the $weight parameter..
-	 *
-	 * @return float The potentially converted weight.
-	 */
-	protected function maybe_convert_to_kilograms( $weight, $uom ) {
-		$weight = floatval( $weight );
-
-		switch ( $uom ) {
-			case 'g':
-				return $weight / 1000;
 		}
 
 		return $weight;
