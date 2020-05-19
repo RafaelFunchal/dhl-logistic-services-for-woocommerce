@@ -248,6 +248,7 @@ class Client extends API_Client {
 					'value' 		=> $item_info->shipment['weight'],
 					'unitOfMeasure'	=> $item_info->shipment['weightUom'],
 				),
+				'billingReference1' => (string) $item_info->shipment['order_id'],
 				'shippingCost' 			=> array(
 					'currency' 		=> $item_info->shipment['currency'],
 					'dutiesPaid'	=> $item_info->shipment['duties']
