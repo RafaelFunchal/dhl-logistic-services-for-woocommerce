@@ -332,9 +332,11 @@ class Client extends API_Client {
 	public function get_manifest( $request_id ){
 
 		$route = $this->get_manifest_route( $request_id );
-		
+		//$route = $this->get_manifest_route( '492bb5c3-3689-4148-bbad-2b6544d79364' );
+		//https://api-sandbox.dhlecs.com/shipping/v4/manifest/5351244/6e6d89d0-2507-4262-8de9-c1bf3aa9ce01
+		//https://api-sandbox.dhlecs.com/shipping/v4/manifest/5351244/5ada27f6-d920-4254-a631-cedc2e437fd5
 		$response 			= $this->get($route, array(), $this->header_request() );
-		error_log( print_r( $response, true ) );
+		
 		if ( $response->status === 200 ) {
 			
 			$decoded_response = json_decode(json_encode($response->body), true );
