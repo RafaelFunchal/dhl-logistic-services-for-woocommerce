@@ -367,6 +367,21 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 		}
 	}
 
+	public function get_dhl_manifest( $package_ids ){
+
+		$manifests = $this->api_client->create_manifest( $package_ids );
+		
+		$file_infos = array();
+
+		foreach( $manifests as $manifest ){
+			$data 							= base64_decode( $manifest['manifestData'] );
+			$item_file_info 				= $this->save_dhl_label_file( 'manifest', $manifest['manifestId'], $data );
+			$file_infos[ $manifest['manifestId'] ] 	= $item_file_info;
+		}
+
+		return $file_infos;
+	}
+
 	/**
 	 * Retrieves the filename for DHL item label files.
 	 *
@@ -412,7 +427,11 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 	 */
 	public function get_dhl_label_file_info( $type, $key ) {
 
-		$label_format = strtolower( $this->get_setting( 'dhl_label_format' ) );
+		if( $type == 'manifest' ){
+			$label_format = 'pdf';
+		}else{
+			$label_format = strtolower( $this->get_setting( 'dhl_label_format' ) );
+		}
 
 		// Return info for "item" type
 		return $this->get_dhl_item_label_file_info( $key, $label_format );
@@ -423,8 +442,8 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 	 *
 	 * @since [*next-version*]
 	 *
-	 * @param string $type The label type: "item", or "order".
-	 * @param string $key The key: barcode for type "item", and order ID for type "order".
+	 * @param string $type The label type: "item", or "manifest".
+	 * @param string $key The key: barcode for type "item", and order ID for type "manifest".
 	 * @param string $data The label file data.
 	 *
 	 * @return object The info for the saved label file, containing the "path" and "url".

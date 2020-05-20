@@ -332,9 +332,9 @@ class Client extends API_Client {
 	public function get_manifest( $request_id ){
 
 		$route = $this->get_manifest_route( $request_id );
-
-		$response 			= $this->get($route, array(), $this->header_request() );
 		
+		$response 			= $this->get($route, array(), $this->header_request() );
+		error_log( print_r( $response, true ) );
 		if ( $response->status === 200 ) {
 			
 			$decoded_response = json_decode(json_encode($response->body), true );

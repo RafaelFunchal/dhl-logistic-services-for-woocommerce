@@ -412,11 +412,33 @@ class PR_DHL_WC_Order_eCS_US extends PR_DHL_WC_Order {
 			}
 
 			try {
-				$manifests = $instance->api_client->create_manifest( $package_ids );
+				$manifests 		= $instance->get_dhl_manifest( $package_ids );
+				$items_count 	= 0;
+				$manifest_links = array();
+				foreach( $manifests as $manifest_id => $manifest ){
+					
+					$label_url 			= $manifest->url;
+					$manifest_links[] 	= sprintf(
+						'<a href="%1$s" target="_blank">%2$s</a>',
+						$label_url,
+						__('download manifest file', 'pr-shipping-dhl') . ' ' . $manifest_id
+					);
+					$items_count++;
+				} 
 
-				foreach( $manifests as $manifest ){
-					$data = base64_decode( $manifest['manifestData'] );
-				}
+				$message = sprintf(
+					__( 'Finalized DHL Manifest - %2$s', 'pr-shipping-dhl' ),
+					$items_count,
+					implode('<br />', $manifest_links )
+				);
+
+				array_push(
+					$array_messages,
+					array(
+						'message' => $message,
+						'type'    => 'success',
+					)
+				);
 				/*
 				// Get the URL to download the order label file
 				$label_url = $this->generate_download_url( '/' . self::DHL_DOWNLOAD_AWB_LABEL_ENDPOINT . '/' . $dhl_order_id );
