@@ -352,7 +352,8 @@ class PR_DHL_WC_Order_eCS_US extends PR_DHL_WC_Order {
 
 		$shop_manager_actions = array(
 			'pr_dhl_create_labels'      => __( 'DHL Create Labels', 'pr-shipping-dhl' ),
-			'pr_dhl_create_manifest' 	=> __( 'DHL Create Manifests', 'pr-shipping-dhl' )
+			'pr_dhl_create_manifest' 	=> __( 'DHL Create Manifests', 'pr-shipping-dhl' ),
+			'pr_dhl_download_manifest' 	=> __( 'DHL Download Manifests', 'pr-shipping-dhl' )
 		);
 
 
@@ -397,7 +398,6 @@ class PR_DHL_WC_Order_eCS_US extends PR_DHL_WC_Order {
 
 		if ( 'pr_dhl_create_manifest' === $action ) {
 			$instance = PR_DHL()->get_dhl_factory();
-			$client = $instance->api_client;
 
 			$package_ids = array();
 
@@ -412,7 +412,33 @@ class PR_DHL_WC_Order_eCS_US extends PR_DHL_WC_Order {
 			}
 
 			try {
-				$manifests 		= $instance->get_dhl_manifest( $package_ids );
+				$manifests 		= $instance->create_dhl_manifest( $package_ids );
+
+				$message = __( 'Create Manifest requested.  The manifest takes 30-60 seconds to be generated, please select "DHL Download Manifest" from the bulk actions to download it.', 'pr-shipping-dhl' );
+
+				array_push(
+					$array_messages,
+					array(
+						'message' => $message,
+						'type'    => 'success',
+					)
+				);
+				
+			} catch (Exception $exception) {
+				array_push(
+					$array_messages,
+					array(
+						'message' => $exception->getMessage(),
+						'type'    => 'error',
+					)
+				);
+			}
+		}elseif( 'pr_dhl_download_manifest' === $action ){
+
+			$instance = PR_DHL()->get_dhl_factory();
+			
+			try {
+				$manifests 		= $instance->download_dhl_manifest();
 				$items_count 	= 0;
 				$manifest_links = array();
 				foreach( $manifests as $manifest_id => $manifest ){
@@ -421,13 +447,13 @@ class PR_DHL_WC_Order_eCS_US extends PR_DHL_WC_Order {
 					$manifest_links[] 	= sprintf(
 						'<a href="%1$s" target="_blank">%2$s</a>',
 						$label_url,
-						__('download manifest file', 'pr-shipping-dhl') . ' ' . $manifest_id
+						__('download', 'pr-shipping-dhl') . ' ' . $manifest_id
 					);
 					$items_count++;
 				} 
 
 				$message = sprintf(
-					__( 'Finalized DHL Manifest - %2$s', 'pr-shipping-dhl' ),
+					__( 'DHL Manifest - %2$s', 'pr-shipping-dhl' ),
 					$items_count,
 					implode('<br />', $manifest_links )
 				);
@@ -439,30 +465,7 @@ class PR_DHL_WC_Order_eCS_US extends PR_DHL_WC_Order {
 						'type'    => 'success',
 					)
 				);
-				/*
-				// Get the URL to download the order label file
-				$label_url = $this->generate_download_url( '/' . self::DHL_DOWNLOAD_AWB_LABEL_ENDPOINT . '/' . $dhl_order_id );
-
-				$manifest_link = sprintf(
-					'<a href="%1$s" target="_blank">%2$s</a>',
-					$label_url,
-					__('download file', 'pr-shipping-dhl')
-				);
-
-				$message = sprintf(
-					__( 'Finalized DHL Manifest - %2$s', 'pr-shipping-dhl' ),
-					$items_count,
-					$manifest_link
-				);
-
-				array_push(
-					$array_messages,
-					array(
-						'message' => $message,
-						'type'    => 'success',
-					)
-				);
-				*/
+				
 			} catch (Exception $exception) {
 				array_push(
 					$array_messages,
@@ -472,6 +475,7 @@ class PR_DHL_WC_Order_eCS_US extends PR_DHL_WC_Order {
 					)
 				);
 			}
+
 		}
 
 		return $array_messages;

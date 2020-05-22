@@ -313,7 +313,8 @@ class Client extends API_Client {
 			
 			if( isset( $response->body->requestId ) ){
 
-				return $this->get_manifest( $response->body->requestId );
+				update_option( 'pr_dhl_ecs_us_manifest', $response->body->requestId );
+				return $response->body->requestId;
 
 			}else{
 				throw new Exception( __( 'DHL Manifest Request ID is not exist!', 'pr-shipping-dhl' ) );
@@ -323,15 +324,20 @@ class Client extends API_Client {
 
 		throw new Exception(
 			sprintf(
-				__( 'Failed to create label: %s', 'pr-shipping-dhl' ),
+				__( 'Failed to create manifest: %s', 'pr-shipping-dhl' ),
 				$this->generate_error_details( $response )
 			)
 		);
 	}
 
-	public function get_manifest( $request_id ){
+	public function download_manifest(){
 
-		$route = $this->get_manifest_route( $request_id );
+		if( !$this->get_manifest() || empty( $this->get_manifest() ) ){
+			throw new Exception( __( 'Manifest request id is empty!', 'pr-shipping-dhl' ) );
+		}
+		error_log( 'check manifest request id');
+		error_log( $this->get_manifest() );
+		$route 		= $this->get_manifest_route( $this->get_manifest() );
 		//$route = $this->get_manifest_route( '492bb5c3-3689-4148-bbad-2b6544d79364' );
 		//https://api-sandbox.dhlecs.com/shipping/v4/manifest/5351244/6e6d89d0-2507-4262-8de9-c1bf3aa9ce01
 		//https://api-sandbox.dhlecs.com/shipping/v4/manifest/5351244/5ada27f6-d920-4254-a631-cedc2e437fd5
@@ -353,6 +359,14 @@ class Client extends API_Client {
 	}
 
 	public function get_manifest_content( $response ){
+
+		if( !isset( $response['status'] ) ){
+			throw new Exception( __( 'Status is not exist!', 'pr-shipping-dhl' ) );
+		}
+
+		if( $response['status'] != 'COMPLETED' ){
+			throw new Exception( sprintf( __( 'Status is : %s', 'pr-shipping-dhl' ), $response['status'] ) );
+		}
 
 		if( !isset( $response['manifests'] ) ){
 			throw new Exception( __( 'Manifest contents are not exist!', 'pr-shipping-dhl' ) );
@@ -387,6 +401,19 @@ class Client extends API_Client {
 			$headers['Content-Type'] = 'application/json';
 		}
 		return $headers;
+	}
+
+	/**
+	 * Add manifest.
+	 *
+	 * @since [*next-version*]
+	 *
+	 * @param string $item_barcode The barcode of the item to add.
+	 * @param string $wc_order The ID of the WooCommerce order.
+	 */
+	public function get_manifest(){
+
+		return get_option( 'pr_dhl_ecs_us_manifest' );
 	}
 
 	/**

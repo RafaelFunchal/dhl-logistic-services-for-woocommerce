@@ -367,9 +367,16 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 		}
 	}
 
-	public function get_dhl_manifest( $package_ids ){
+	public function create_dhl_manifest( $package_ids ){
 
 		$manifests = $this->api_client->create_manifest( $package_ids );
+
+		return $manifests;
+	}
+
+	public function download_dhl_manifest(){
+
+		$manifests = $this->api_client->download_manifest();
 		
 		$file_infos = array();
 
