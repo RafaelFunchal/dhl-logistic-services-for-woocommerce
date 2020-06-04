@@ -352,8 +352,8 @@ class PR_DHL_WC_Order_eCS_US extends PR_DHL_WC_Order {
 
 		$shop_manager_actions = array(
 			'pr_dhl_create_labels'      => __( 'DHL Create Labels', 'pr-shipping-dhl' ),
-			'pr_dhl_create_manifest' 	=> __( 'DHL Create Manifests', 'pr-shipping-dhl' ),
-			'pr_dhl_download_manifest' 	=> __( 'DHL Download Manifests', 'pr-shipping-dhl' )
+			'pr_dhl_create_manifest' 	=> __( 'DHL Create Manifest', 'pr-shipping-dhl' ),
+			'pr_dhl_download_manifest' 	=> __( 'DHL Download Manifest', 'pr-shipping-dhl' )
 		);
 
 
