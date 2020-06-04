@@ -225,12 +225,6 @@ class Item_Info {
 
 					return $self->string_length_sanitization( $company, 30 );
 				},
-				'validate' => function( $value ) {
-
-                    if( empty( $value ) && !$this->isCrossBorder ) {
-                        throw new Exception( __( 'Recipient "Company" is empty!', 'pr-shipping-dhl' ) );
-                    }
-                },
 			),
 			'address_1' => array(
 				'rename' => 'address1',
@@ -316,7 +310,6 @@ class Item_Info {
 			),
 			'dhl_company_name'      => array(
 				'rename' => 'companyName',
-				'error'  => __( 'Base "Company Name" in settings is empty.', 'pr-shipping-dhl' ),
 				'sanitize' => function( $name ) use ($self) {
 
 					return $self->string_length_sanitization( $name, 30 );
