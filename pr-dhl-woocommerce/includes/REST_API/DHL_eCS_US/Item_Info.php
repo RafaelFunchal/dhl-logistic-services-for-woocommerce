@@ -40,13 +40,13 @@ class Item_Info {
 	public $consignee;
 
 	/**
-	 * The array of shipper information sub-arrays.
+	 * The array of return information sub-arrays.
 	 *
 	 * @since [*next-version*]
 	 *
 	 * @var array[]
 	 */
-	public $shipper;
+	public $return;
 
 	/**
 	 * The array of content item information sub-arrays.
@@ -109,7 +109,7 @@ class Item_Info {
 		
 		$this->shipment 		= Args_Parser::parse_args( $shipping_info, $this->get_shipment_info_schema() );
 		$this->consignee 		= Args_Parser::parse_args( $recipient_info, $this->get_recipient_info_schema() );
-		$this->shipper 			= Args_Parser::parse_args( $settings, $this->get_shipper_info_schema() );
+		$this->return 			= Args_Parser::parse_args( $settings, $this->get_return_info_schema() );
 		$this->contents 		= array();
 
 		foreach ( $items_info as $item_info ) {
@@ -293,7 +293,7 @@ class Item_Info {
 	 *
 	 * @return array
 	 */
-	protected function get_shipper_info_schema() {
+	protected function get_return_info_schema() {
 
 		// Closures in PHP 5.3 do not inherit class context
 		// So we need to copy $this into a lexical variable and pass it to closures manually
@@ -315,7 +315,7 @@ class Item_Info {
 					return $self->string_length_sanitization( $name, 30 );
 				}
 			),
-			'dhl_address_1' => array(
+			'dhl_return_address_1' => array(
 				'rename' => 'address1',
 				'error' => __( 'Base "Address 1" is empty!', 'pr-shipping-dhl' ),
 				'sanitize' => function( $address ) use ($self) {
@@ -323,11 +323,11 @@ class Item_Info {
 					return $self->string_length_sanitization( $address, 50 );
 				},
 			),
-			'dhl_address_2' => array(
+			'dhl_return_address_2' => array(
 				'rename' => 'address2',
 				'default' => '',
 			),
-			'dhl_city'      => array(
+			'dhl_return_city'      => array(
 				'rename' => 'city',
 				'error' => __( 'Base "City" is empty!', 'pr-shipping-dhl' ),
 				'sanitize' => function( $city ) use ($self) {
@@ -335,15 +335,15 @@ class Item_Info {
 					return $self->string_length_sanitization( $city, 30 );
 				},
 			),
-			'dhl_state'     => array(
+			'dhl_return_state'     => array(
 				'rename' => 'state',
 				'default' => '',
 			),
-			'dhl_country'   => array(
+			'dhl_return_country'   => array(
 				'rename' => 'country',
 				'error' => __( 'Base "Country" is empty!', 'pr-shipping-dhl' ),
 			),
-			'dhl_postcode'  => array(
+			'dhl_return_postcode'  => array(
 				'rename' => 'postalCode',
 				'error' => __( 'Base "Postcode" is empty!', 'pr-shipping-dhl' ),
 			),

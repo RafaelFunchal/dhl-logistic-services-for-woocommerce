@@ -35,24 +35,6 @@ class Client extends API_Client {
 	protected $pickup_id;
 
 	/**
-	 * The pickup address data.
-	 *
-	 * @since [*next-version*]
-	 *
-	 * @var array
-	 */
-	protected $pickup_address;
-
-	/**
-	 * The shipper address data.
-	 *
-	 * @since [*next-version*]
-	 *
-	 * @var array
-	 */
-	protected $shipper_address;
-
-	/**
 	 * The default weight unit of measure.
 	 *
 	 * @since [*next-version*]
@@ -240,7 +222,7 @@ class Client extends API_Client {
 			'distributionCenter'	=> $item_info->shipment['distribution_center'],
 			'orderedProductId' 		=> $item_info->shipment['product_code'],
 			'consigneeAddress' 		=> $item_info->consignee,
-			'returnAddress' 		=> $item_info->shipper,
+			'returnAddress' 		=> $item_info->return,
 			'packageDetail' 		=> array(
 				'packageId' 	=> $package_id,
 				'packageDescription' => $item_info->shipment['description'],

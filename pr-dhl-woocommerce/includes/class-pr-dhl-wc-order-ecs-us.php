@@ -160,17 +160,17 @@ class PR_DHL_WC_Order_eCS_US extends PR_DHL_WC_Order {
 		$args['dhl_settings']['handover'] 					= $this->get_label_handover_num();
 		$args['dhl_settings']['label_format'] 				= $this->shipping_dhl_settings['dhl_label_format'];
 
-		// Get DHL Pickup Address.
-		$args['dhl_settings']['dhl_contact_name'] 	= $this->shipping_dhl_settings['dhl_contact_name'];
-		$args['dhl_settings']['dhl_company_name'] 	= $this->shipping_dhl_settings['dhl_shipper_company'];
-		$args['dhl_settings']['dhl_address_1'] 		= $this->shipping_dhl_settings['dhl_shipper_address_1'];
-		$args['dhl_settings']['dhl_address_2'] 		= $this->shipping_dhl_settings['dhl_shipper_address_2'];
-		$args['dhl_settings']['dhl_city'] 			= $this->shipping_dhl_settings['dhl_shipper_address_city'];
-		$args['dhl_settings']['dhl_state'] 			= $this->shipping_dhl_settings['dhl_shipper_address_state'];
-		$args['dhl_settings']['dhl_country'] 		= $this->shipping_dhl_settings['dhl_shipper_address_country'];
-		$args['dhl_settings']['dhl_postcode'] 		= $this->shipping_dhl_settings['dhl_shipper_address_postcode'];
-		$args['dhl_settings']['dhl_phone'] 			= $this->shipping_dhl_settings['dhl_phone'];
-		$args['dhl_settings']['dhl_email'] 			= $this->shipping_dhl_settings['dhl_email'];
+		// Get DHL Return Address.
+		$args['dhl_settings']['dhl_contact_name'] 			= $this->shipping_dhl_settings['dhl_contact_name'];
+		$args['dhl_settings']['dhl_company_name'] 			= $this->shipping_dhl_settings['dhl_company_name'];
+		$args['dhl_settings']['dhl_return_address_1'] 		= $this->shipping_dhl_settings['dhl_return_address_1'];
+		$args['dhl_settings']['dhl_return_address_2'] 		= $this->shipping_dhl_settings['dhl_return_address_2'];
+		$args['dhl_settings']['dhl_return_city'] 			= $this->shipping_dhl_settings['dhl_return_address_city'];
+		$args['dhl_settings']['dhl_return_state'] 			= $this->shipping_dhl_settings['dhl_return_address_state'];
+		$args['dhl_settings']['dhl_return_country'] 		= $this->shipping_dhl_settings['dhl_return_address_country'];
+		$args['dhl_settings']['dhl_return_postcode'] 		= $this->shipping_dhl_settings['dhl_return_address_postcode'];
+		$args['dhl_settings']['dhl_phone'] 					= $this->shipping_dhl_settings['dhl_phone'];
+		$args['dhl_settings']['dhl_email'] 					= $this->shipping_dhl_settings['dhl_email'];
 
 		// Get package prefix
 		$args['order_details']['prefix'] = $this->shipping_dhl_settings['dhl_prefix'];

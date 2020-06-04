@@ -299,42 +299,42 @@ class PR_DHL_WC_Method_eCS_US extends WC_Shipping_Method {
 					'default'           => '',
 					'placeholder'		=> '0214543433'
 				),
-				'dhl_shipper_company' => array(
+				'dhl_company_name' => array(
 					'title'             => __( 'Company', 'pr-shipping-dhl' ),
 					'type'              => 'text',
 					'description'       => __( 'Enter Return Company.', 'pr-shipping-dhl' ),
 					'desc_tip'          => true,
 					'default'           => ''
 				),
-				'dhl_shipper_address_1' => array(
+				'dhl_return_address_1' => array(
 					'title'             => __( 'Address 1', 'pr-shipping-dhl' ),
 					'type'              => 'text',
 					'description'       => __( 'Enter Return Address.', 'pr-shipping-dhl' ),
 					'desc_tip'          => true,
 					'default'           => ''
 				),
-				'dhl_shipper_address_2' => array(
+				'dhl_return_address_2' => array(
 					'title'             => __( 'Address 2', 'pr-shipping-dhl' ),
 					'type'              => 'text',
 					'description'       => __( 'Enter Return Address 2.', 'pr-shipping-dhl' ),
 					'desc_tip'          => true,
 					'default'           => ''
 				),
-				'dhl_shipper_address_city' => array(
+				'dhl_return_address_city' => array(
 					'title'             => __( 'City', 'pr-shipping-dhl' ),
 					'type'              => 'text',
 					'description'       => __( 'Enter Return City.', 'pr-shipping-dhl' ),
 					'desc_tip'          => true,
 					'default'           => ''
 				),
-				'dhl_shipper_address_state' => array(
+				'dhl_return_address_state' => array(
 					'title'             => __( 'State', 'pr-shipping-dhl' ),
 					'type'              => 'text',
 					'description'       => __( 'Enter Return County.', 'pr-shipping-dhl' ),
 					'desc_tip'          => true,
 					'default'           => ''
 				),
-				'dhl_shipper_address_country' => array(
+				'dhl_return_address_country' => array(
 					'title'             => __( 'Country', 'pr-shipping-dhl' ),
 					'type'              => 'select',
 					'description'       => __( 'Enter Return Country.', 'pr-shipping-dhl' ),
@@ -343,7 +343,7 @@ class PR_DHL_WC_Method_eCS_US extends WC_Shipping_Method {
 					'class'				=> 'wc-enhanced-select',
 					'default'           => ''
 				),
-				'dhl_shipper_address_postcode' => array(
+				'dhl_return_address_postcode' => array(
 					'title'             => __( 'Postcode', 'pr-shipping-dhl' ),
 					'type'              => 'text',
 					'description'       => __( 'Enter Return Postcode.', 'pr-shipping-dhl' ),
