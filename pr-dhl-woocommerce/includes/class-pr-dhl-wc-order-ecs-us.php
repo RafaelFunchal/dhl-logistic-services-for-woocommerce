@@ -18,6 +18,13 @@ class PR_DHL_WC_Order_eCS_US extends PR_DHL_WC_Order {
 	
 	protected $carrier = 'DHL eCommerces';
 
+	/**
+	 * The endpoint for download AWB labels.
+	 *
+	 * @since [*next-version*]
+	 */
+	const DHL_DOWNLOAD_MANIFEST_ENDPOINT = 'dhl_download_manifest';
+
 	public function init_hooks() {
 		parent::init_hooks();
 
@@ -33,6 +40,14 @@ class PR_DHL_WC_Order_eCS_US extends PR_DHL_WC_Order {
 		// add bulk order filter for printed / non-printed orders
 		add_action( 'restrict_manage_posts', array( $this, 'filter_orders_by_label_created') , 20 );
 		add_filter( 'request',               array( $this, 'filter_orders_by_label_created_query' ) );
+
+		// The AWB label download endpoint
+		add_action( 'init', array( $this, 'add_download_manifest_endpoint' ) );
+		add_action( 'parse_query', array( $this, 'process_download_manifest' ) );
+	}
+
+	public function add_download_manifest_endpoint() {
+		add_rewrite_endpoint( self::DHL_DOWNLOAD_MANIFEST_ENDPOINT, EP_ROOT );
 	}
 
 	public function additional_meta_box_fields( $order_id, $is_disabled, $dhl_label_items, $dhl_obj ) {
@@ -431,7 +446,7 @@ class PR_DHL_WC_Order_eCS_US extends PR_DHL_WC_Order {
 			}
 
 			try {
-				$manifests 		= $instance->create_dhl_manifest( $package_ids );
+				$request_id 	= $instance->create_dhl_manifest( $package_ids );
 
 				$message = __( 'Create Manifest requested.  The manifest takes 30-60 seconds to be generated, please select "DHL Download Manifest" from the bulk actions to download it.', 'pr-shipping-dhl' );
 
@@ -453,9 +468,9 @@ class PR_DHL_WC_Order_eCS_US extends PR_DHL_WC_Order {
 				);
 			}
 		}elseif( 'pr_dhl_download_manifest' === $action ){
-
-			$instance = PR_DHL()->get_dhl_factory();
 			
+			$instance = PR_DHL()->get_dhl_factory();
+
 			try {
 				$manifests 		= $instance->download_dhl_manifest();
 				$items_count 	= 0;
@@ -463,6 +478,9 @@ class PR_DHL_WC_Order_eCS_US extends PR_DHL_WC_Order {
 				foreach( $manifests as $manifest_id => $manifest ){
 					
 					$label_url 			= $manifest->url;
+
+					$label_url 			= $this->generate_download_url( '/' . self::DHL_DOWNLOAD_MANIFEST_ENDPOINT . '/' . $manifest_id );
+
 					$manifest_links[] 	= sprintf(
 						'<a href="%1$s" target="_blank">%2$s</a>',
 						$label_url,
@@ -498,6 +516,48 @@ class PR_DHL_WC_Order_eCS_US extends PR_DHL_WC_Order {
 		}
 
 		return $array_messages;
+	}
+
+	public function process_download_manifest() {
+		global $wp_query;
+		
+		$dhl_manifest_id = isset($wp_query->query_vars[ self::DHL_DOWNLOAD_MANIFEST_ENDPOINT ] )
+			? $wp_query->query_vars[ self::DHL_DOWNLOAD_MANIFEST_ENDPOINT ]
+			: null;
+			error_log('test download manifest parse query');
+			error_log( isset($wp_query->query_vars[ self::DHL_DOWNLOAD_MANIFEST_ENDPOINT ] ) );
+			error_log( $dhl_manifest_id );
+		// If the endpoint param (aka the DHL order ID) is not in the query, we bail
+		if ( $dhl_manifest_id === null ) {
+			return;
+		}
+
+		$instance 	= PR_DHL()->get_dhl_factory();
+		$label_path = $instance->get_dhl_manifest_label_file_info( $dhl_manifest_id )->path;
+		error_log( $label_path );
+		$array_messages = get_option( '_pr_dhl_bulk_action_confirmation' );
+		if ( empty( $array_messages ) || !is_array( $array_messages ) ) {
+			$array_messages = array( 'msg_user_id' => get_current_user_id() );
+		}
+
+		if ( false == $this->download_label( $label_path ) ) {
+			array_push($array_messages, array(
+				'message' => __( 'Unable to download file. Label appears to be invalid or is missing. Please try again.', 'pr-shipping-dhl' ),
+				'type' => 'error'
+			));
+		}
+
+		update_option( '_pr_dhl_bulk_action_confirmation', $array_messages );
+
+		$redirect_url = isset($wp_query->query_vars[ 'referer' ])
+			? $wp_query->query_vars[ 'referer' ]
+			: admin_url('edit.php?post_type=shop_order');
+
+		// If there are errors redirect to the shop_orders and display error
+		if ( $this->has_error_message( $array_messages ) ) {
+            wp_redirect( remove_query_arg( array( '_wp_http_referer', '_wpnonce' ), $redirect_url ) );
+			exit;
+		}
 	}
 
 	protected function get_bulk_settings_override( $args ) {

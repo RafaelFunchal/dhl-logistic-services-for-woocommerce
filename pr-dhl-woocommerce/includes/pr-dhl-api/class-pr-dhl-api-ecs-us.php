@@ -369,9 +369,9 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 
 	public function create_dhl_manifest( $package_ids ){
 
-		$manifests = $this->api_client->create_manifest( $package_ids );
+		$request_id = $this->api_client->create_manifest( $package_ids );
 
-		return $manifests;
+		return $request_id;
 	}
 
 	public function download_dhl_manifest(){
@@ -404,6 +404,20 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 	}
 
 	/**
+	 * Retrieves the filename for DHL manifest label file.
+	 *
+	 * @since [*next-version*]
+	 *
+	 * @param string $manifest_id The DHL manifest ID.
+	 * @param string $format The file format.
+	 *
+	 * @return string
+	 */
+	public function get_dhl_manifest_label_file_name( $manifest_id, $format = 'pdf' ) {
+		return sprintf('dhl-manifest-%s.%s', $manifest_id, $format);
+	}
+
+	/**
 	 * Retrieves the file info for a DHL item label file.
 	 *
 	 * @since [*next-version*]
@@ -415,6 +429,25 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 	 */
 	public function get_dhl_item_label_file_info( $barcode, $format = 'pdf' ) {
 		$file_name = $this->get_dhl_item_label_file_name($barcode, $format);
+
+		return (object) array(
+			'path' => PR_DHL()->get_dhl_label_folder_dir() . $file_name,
+			'url' => PR_DHL()->get_dhl_label_folder_url() . $file_name,
+		);
+	}
+
+	/**
+	 * Retrieves the file info for DHL manifest label file.
+	 *
+	 * @since [*next-version*]
+	 *
+	 * @param string $order_id The DHL order ID.
+	 * @param string $format The file format.
+	 *
+	 * @return object An object containing the file "path" and "url" strings.
+	 */
+	public function get_dhl_manifest_label_file_info( $manifest_id, $format = 'pdf') {
+		$file_name = $this->get_dhl_manifest_label_file_name( $manifest_id, $format);
 
 		return (object) array(
 			'path' => PR_DHL()->get_dhl_label_folder_dir() . $file_name,
@@ -435,11 +468,10 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 	public function get_dhl_label_file_info( $type, $key ) {
 
 		if( $type == 'manifest' ){
-			$label_format = 'pdf';
-		}else{
-			$label_format = strtolower( $this->get_setting( 'dhl_label_format' ) );
+			return $this->get_dhl_manifest_label_file_info( $key, 'pdf' );
 		}
 
+		$label_format = strtolower( $this->get_setting( 'dhl_label_format' ) );
 		// Return info for "item" type
 		return $this->get_dhl_item_label_file_info( $key, $label_format );
 	}
