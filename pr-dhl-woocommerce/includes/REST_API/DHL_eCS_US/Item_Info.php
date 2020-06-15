@@ -156,9 +156,14 @@ class Item_Info {
 				},
 			),
 			'weight'     => array(
+                'error'    => __( 'Order "Weight" is empty!', 'pr-shipping-dhl' ),
+                'validate' => function( $weight ) use ($self) {
+                    if ( ! is_numeric( $weight ) || $weight <= 0 ) {
+                        throw new Exception( __( 'The order "Weight" must be a positive number', 'pr-shipping-dhl' ) );
+                    }
+                },
 				'sanitize' => function ( $weight ) use ($self) {
-
-					$weight = ( $weight > 1 )? $weight : 1;
+                    
 					return floatval( $weight );
 				}
 			),
@@ -317,7 +322,7 @@ class Item_Info {
 			),
 			'dhl_return_address_1' => array(
 				'rename' => 'address1',
-				'error' => __( 'Base "Address 1" is empty!', 'pr-shipping-dhl' ),
+				'error' => __( 'Return "Address 1" is empty!', 'pr-shipping-dhl' ),
 				'sanitize' => function( $address ) use ($self) {
 
 					return $self->string_length_sanitization( $address, 50 );
@@ -329,7 +334,7 @@ class Item_Info {
 			),
 			'dhl_return_city'      => array(
 				'rename' => 'city',
-				'error' => __( 'Base "City" is empty!', 'pr-shipping-dhl' ),
+				'error' => __( 'Return address "City" is empty!', 'pr-shipping-dhl' ),
 				'sanitize' => function( $city ) use ($self) {
 
 					return $self->string_length_sanitization( $city, 30 );
@@ -341,11 +346,11 @@ class Item_Info {
 			),
 			'dhl_return_country'   => array(
 				'rename' => 'country',
-				'error' => __( 'Base "Country" is empty!', 'pr-shipping-dhl' ),
+				'error' => __( 'Return address "Country" is empty!', 'pr-shipping-dhl' ),
 			),
 			'dhl_return_postcode'  => array(
 				'rename' => 'postalCode',
-				'error' => __( 'Base "Postcode" is empty!', 'pr-shipping-dhl' ),
+				'error' => __( 'Return address "Postcode" is empty!', 'pr-shipping-dhl' ),
 			),
 		);
 	}
