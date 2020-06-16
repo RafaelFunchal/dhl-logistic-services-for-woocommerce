@@ -190,6 +190,10 @@ class Item_Info {
 
 				}
 			),
+			'dangerous_goods' => array(
+				'rename' 	=> 'content_category',
+				'default' 	=> '',
+			),
 			'label_format' => array(
 				'default' 	=> '',
 				'validate'	=> function( $format ){

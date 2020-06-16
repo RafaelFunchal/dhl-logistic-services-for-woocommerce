@@ -267,15 +267,24 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 	}
 	
 	public function get_dhl_content_indicator() {
+
 		return array(
-			'00' => __('Does not contain Lithium Batteries', 'pr-shipping-dhl' ),
-			'01' => __('Lithium Batteries in item', 'pr-shipping-dhl' ),
-			'02' => __('Lithium Batteries packed with item', 'pr-shipping-dhl' ),
-			'03' => __('Lithium Batteries only', 'pr-shipping-dhl' ),
-			'04' => __('Rechargeable Batteries in item', 'pr-shipping-dhl' ),
-			'05' => __('Rechargeable Batteries packed with item', 'pr-shipping-dhl' ),
-			'06' => __('Rechargeable Batteries only', 'pr-shipping-dhl' ),
+			'01' => __('Lithium Metal / Alloy Batteries', 'pr-shipping-dhl' ),
+			'04' => __('Lithium-ion or Lithium Polymer Batteries', 'pr-shipping-dhl' ),
+			'40' => __('Limited quantities', 'pr-shipping-dhl' ),
 		);
+		/*
+		return array(
+			'01' => __('Primary Contained in Equipment', 'pr-shipping-dhl' ),
+			'02' => __('Primary Packed with Equipment', 'pr-shipping-dhl' ),
+			'03' => __('Primary Stand-Alone', 'pr-shipping-dhl' ),
+			'04' => __('Secondary Contained in Equipment', 'pr-shipping-dhl' ),
+			'05' => __('Secondary Packed with Equipment', 'pr-shipping-dhl' ),
+			'06' => __('Secondary Stand-Alone', 'pr-shipping-dhl' ),
+			'08' => __('ORM-D', 'pr-shipping-dhl' ),
+			'09' => __('Small Quantity Provision', 'pr-shipping-dhl' ),
+		);
+		*/
 	}
 
 	/**
@@ -285,9 +294,9 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 	 */
 	public function get_dhl_products_international() {
 		return array(
-			'PLT' => __( 'DHL Parcel Expedited Max', 'pr-shipping-dhl' ),
-			'PLY' => __( 'DHL Parcel Max', 'pr-shipping-dhl' ),
-			'PKY' => __( 'DHL Parcel Ground', 'pr-shipping-dhl' )
+			'PLT' => __( 'DHL Parcel International Direct', 'pr-shipping-dhl' ),
+			'PLY' => __( 'DHL Parcel International Standard', 'pr-shipping-dhl' ),
+			'PKY' => __( 'DHL Packet International', 'pr-shipping-dhl' )
 		);
 	}
 

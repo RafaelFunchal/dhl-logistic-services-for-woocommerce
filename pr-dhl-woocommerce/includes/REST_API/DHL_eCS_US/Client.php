@@ -263,6 +263,7 @@ class Client extends API_Client {
 			}
 
 			$request_data['customsDetails'] = $shipment_contents;
+			$request_data['packageDetail']['contentCategory'] = $item_info->shipment['content_category'];
 
 		}
 
