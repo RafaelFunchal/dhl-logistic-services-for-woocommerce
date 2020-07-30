@@ -328,9 +328,9 @@ class PR_DHL_WC_Method_eCS_US extends WC_Shipping_Method {
 					'default'           => ''
 				),
 				'dhl_return_address_state' => array(
-					'title'             => __( 'State', 'pr-shipping-dhl' ),
+					'title'             => __( 'State Code', 'pr-shipping-dhl' ),
 					'type'              => 'text',
-					'description'       => __( 'Enter Return County.', 'pr-shipping-dhl' ),
+					'description'       => __( 'Enter Return State. Must be a valid 2-character state code for US', 'pr-shipping-dhl' ),
 					'desc_tip'          => true,
 					'default'           => ''
 				),

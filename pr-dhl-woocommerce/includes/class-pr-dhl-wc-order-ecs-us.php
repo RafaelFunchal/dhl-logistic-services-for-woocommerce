@@ -524,9 +524,9 @@ class PR_DHL_WC_Order_eCS_US extends PR_DHL_WC_Order {
 		$dhl_manifest_id = isset($wp_query->query_vars[ self::DHL_DOWNLOAD_MANIFEST_ENDPOINT ] )
 			? $wp_query->query_vars[ self::DHL_DOWNLOAD_MANIFEST_ENDPOINT ]
 			: null;
-			error_log('test download manifest parse query');
-			error_log( isset($wp_query->query_vars[ self::DHL_DOWNLOAD_MANIFEST_ENDPOINT ] ) );
-			error_log( $dhl_manifest_id );
+//			error_log('test download manifest parse query');
+//			error_log( isset($wp_query->query_vars[ self::DHL_DOWNLOAD_MANIFEST_ENDPOINT ] ) );
+//			error_log( $dhl_manifest_id );
 		// If the endpoint param (aka the DHL order ID) is not in the query, we bail
 		if ( $dhl_manifest_id === null ) {
 			return;
@@ -534,7 +534,7 @@ class PR_DHL_WC_Order_eCS_US extends PR_DHL_WC_Order {
 
 		$instance 	= PR_DHL()->get_dhl_factory();
 		$label_path = $instance->get_dhl_manifest_label_file_info( $dhl_manifest_id )->path;
-		error_log( $label_path );
+//		error_log( $label_path );
 		$array_messages = get_option( '_pr_dhl_bulk_action_confirmation' );
 		if ( empty( $array_messages ) || !is_array( $array_messages ) ) {
 			$array_messages = array( 'msg_user_id' => get_current_user_id() );
