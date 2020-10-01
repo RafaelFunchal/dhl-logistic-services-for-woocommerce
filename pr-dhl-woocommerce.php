@@ -179,8 +179,10 @@ class PR_DHL_WC {
 			// Load plugin except for DHL Parcel countries
 			$dhl_parcel_countries = array('NL', 'BE', 'LU');
 
-			if (!in_array($this->base_country_code, $dhl_parcel_countries) || apply_filters('pr_shipping_dhl_bypass_load_plugin', false)) {
+            if (!in_array($this->base_country_code, $dhl_parcel_countries) || apply_filters('pr_shipping_dhl_bypass_load_plugin', false)) {
 				$this->define_constants();
+
+				// @TODO WTF??
 				$this->includes();
 				$this->init_hooks();
 			}
@@ -208,6 +210,7 @@ class PR_DHL_WC {
 
         add_action( 'admin_enqueue_scripts', array( $this, 'dhl_enqueue_scripts') );
 
+        // @TODO WTF??
         add_action( 'woocommerce_shipping_init', array( $this, 'includes' ) );
         add_filter( 'woocommerce_shipping_methods', array( $this, 'add_shipping_method' ) );
         // Test connection
@@ -232,6 +235,8 @@ class PR_DHL_WC {
 					// $this->shipping_dhl_notice = new PR_DHL_WC_Notice();
 				} elseif ( $dhl_obj->is_dhl_deutsche_post() ) {
 				    $this->shipping_dhl_order = new PR_DHL_WC_Order_Deutsche_Post();
+                } elseif ( $dhl_obj->is_dhl_freight() ) {
+				    $this->shipping_dhl_frontend = new PR_DHL_Front_End_Freight();
                 }
 				
 				// Ensure DHL Labels folder exists
@@ -327,7 +332,8 @@ class PR_DHL_WC {
 		// Check country somehow
 		try {
 			$dhl_obj = $this->get_dhl_factory();
-			
+
+			// @TODO We could add abstract method to check if DHL, and just pass dhl_object class name instead hardcoding
 			if( $dhl_obj->is_dhl_paket() ) {
 				$pr_dhl_ship_meth = 'PR_DHL_WC_Method_Paket';
 				$shipping_method['pr_dhl_paket'] = $pr_dhl_ship_meth;
@@ -340,7 +346,10 @@ class PR_DHL_WC {
 			} elseif( $dhl_obj->is_dhl_deutsche_post() ) {
 				$pr_dhl_ship_meth = 'PR_DHL_WC_Method_Deutsche_Post';
 				$shipping_method['pr_dhl_dp'] = $pr_dhl_ship_meth;
-			}
+			} elseif( $dhl_obj->is_dhl_freight() ) {
+                $pr_dhl_ship_meth = 'PR_DHL_WC_Method_Freight_Post';
+                $shipping_method['pr_dhl_fr_se'] = $pr_dhl_ship_meth;
+            }
 
 		} catch (Exception $e) {
 			// do nothing
@@ -386,7 +395,7 @@ class PR_DHL_WC {
 		// $shipping_dhl_settings = $this->get_shipping_dhl_settings();
 		// $client_id = isset( $shipping_dhl_settings['dhl_api_key'] ) ? $shipping_dhl_settings['dhl_api_key'] : '';
 		// $client_secret = isset( $shipping_dhl_settings['dhl_api_secret'] ) ? $shipping_dhl_settings['dhl_api_secret'] : '';
-		
+
 		try {	
 			$dhl_obj = PR_DHL_API_Factory::make_dhl( $base_country_code );		
 		} catch (Exception $e) {
@@ -454,6 +463,8 @@ class PR_DHL_WC {
 			} elseif ( $dhl_obj->is_dhl_ecs_asia() ) {
 			    $dhl_settings = $dhl_obj->get_settings();
             } elseif ( $dhl_obj->is_dhl_deutsche_post() ) {
+			    $dhl_settings = $dhl_obj->get_settings();
+            } elseif ( $dhl_obj->is_dhl_freight() ) {
 			    $dhl_settings = $dhl_obj->get_settings();
             }
 

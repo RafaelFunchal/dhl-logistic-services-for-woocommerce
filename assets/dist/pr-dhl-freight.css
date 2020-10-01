@@ -1,0 +1,42 @@
+.dff {
+  display: none;
+  position: fixed;
+  top: 20%;
+  z-index: 10;
+  width: 100%;
+  left: 0;
+  right: 0;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: white;
+  border: 1px solid grey;
+}
+
+.dff__map {
+  height: 200px;
+  margin-bottom: 20px;
+}
+
+.dff__map a[href^="http://maps.google.com/maps"] {
+  display: none !important;
+}
+
+.dff__map a[href^="https://maps.google.com/maps"] {
+  display: none !important;
+}
+
+.dff__map .gmnoprint a,
+.dff__map .gmnoprint span,
+.dff__map .gm-style-cc {
+  display: none;
+}
+
+.dff__map .gmnoprint div {
+  background: none !important;
+}
+
+.dff__actions {
+  text-align: right;
+}
+
