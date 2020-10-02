@@ -26,17 +26,19 @@ class Client extends API_Client
     }
 
 
-    public function get_service_points( $params )
+    public function get_service_points($params)
     {
         $response = $this->post('servicepointlocatorapi_21/v1/servicepoint/findnearestservicepoints', $params);
 
-        if ($response->status === 200) {
-            return $response->body;
+        if ($response->status === 200 && $response->body->status === 'OK') {
+            return $response->body->servicePoints;
         }
 
-        $message = ! empty( $response->body->error )
+        $message = ! empty($response->body->error)
             ? $response->body->error
-            : __('No message sent!', 'pr-shipping-dhl');
+            : ( ! empty($response->body->errorMessage)
+                ? $response->body->errorMessage
+                : __('No message sent!', 'pr-shipping-dhl') );
 
         throw new \Exception(
             sprintf( __( 'API error: %s', 'pr-shipping-dhl' ), $message )

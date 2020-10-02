@@ -138,24 +138,18 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
      * Get Freight service points
      */
     public function get_dhl_freight_service_points($args) {
-
-        $default = [
-            'address' => [
-                'street' => '',
-                'streetName' => '',
-                'cityName' => '',
-                'postalCode' => '',
-                'countryCode' => 'SE',
-            ]
+        $defaultAddress = [
+            'street' => '',
+            'cityName' => '',
+            'postalCode' => '',
+            'countryCode' => 'SE',
         ];
 
-        $args = array_merge($default, $args);
+        $params = [
+            'address' => array_merge($defaultAddress, $args)
+        ];
 
-        print_r($args);
-
-        die();
-
-        return $this->api_client->get_service_points($args);
+        return $this->api_client->get_service_points($params);
     }
 
     /**

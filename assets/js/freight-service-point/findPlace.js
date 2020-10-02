@@ -1,18 +1,8 @@
-// Run Actions
-const actions = () => {
-  const run = () => {
-    document.querySelector('#dhl-fr-find') && findPlace().init();
-  }
-
-  return {run}
-}
-
-// Find Places action
 const findPlace = () => {
   const googleMapElem = document.getElementById('dhl-freight-map')
   const googleMapFindButton = document.getElementById('dhl-fr-find')
   const popUpElem = document.getElementById('dhl-freight-finder')
-  const popUpCloseButton = popUpElem.querySelector('.dff__close')
+  const popUpCloseButton = popUpElem.querySelector('.dhl-freight-popup__close')
   const shippingAddressOneField = document.getElementById('shipping_address_1')
 
   const popUpVisual = () => {
@@ -53,7 +43,8 @@ const findPlace = () => {
    * Load Google Map
    */
   const loadMap = () => {
-    const myLatLng = {lat: -25.363, lng: 131.044};
+    // Sweeden
+    const myLatLng = {lat: 62.8440857, lng: 11.58721};
 
     const map = new google.maps.Map(googleMapElem, {
       zoom: 4,
@@ -86,5 +77,4 @@ const findPlace = () => {
   return {init}
 }
 
-// On jQuery done run all actions
-jQuery(document).ready(() => actions().run());
+export default findPlace;

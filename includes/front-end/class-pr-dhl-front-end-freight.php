@@ -15,8 +15,6 @@ if ( ! class_exists( 'PR_DHL_Front_End_Freight' ) ) :
         {
             $this->shipping_dhl_settings = PR_DHL()->get_shipping_dhl_settings();
 
-            //print_r(PR_DHL()->get_dhl_factory()->get_dhl_freight_service_points());
-
             $this->init_hooks();
         }
 
@@ -24,8 +22,8 @@ if ( ! class_exists( 'PR_DHL_Front_End_Freight' ) ) :
             add_action( 'wp_enqueue_scripts', [$this, 'loadStylesScripts']);
             add_action( 'woocommerce_before_checkout_shipping_form', [$this, 'mapFinderButton']);
             add_action( 'woocommerce_after_checkout_form', [$this, 'addMapPopUp']);
-            add_action( 'wp_ajax_dhl_service_point_search', array( $this, 'lookForServicePoints' ) );
-            add_action( 'wp_ajax_nopriv_dhl_service_point_search', array( $this, 'lookForServicePoints' ) );
+            add_action( 'wp_ajax_dhl_service_point_search', [$this, 'lookForServicePoints']);
+            add_action( 'wp_ajax_nopriv_dhl_service_point_search', [$this, 'lookForServicePoints']);
         }
 
         public function mapFinderButton()
@@ -34,7 +32,7 @@ if ( ! class_exists( 'PR_DHL_Front_End_Freight' ) ) :
                 return;
             }
 
-            echo sprintf('<button id="dhl-fr-find" class="button">Search in Map</button>');
+            wc_get_template('checkout/dhl-freight-fields.php', [], '', PR_DHL_PLUGIN_DIR_PATH . '/templates/');
         }
 
         public function addMapPopUp()
@@ -55,10 +53,13 @@ if ( ! class_exists( 'PR_DHL_Front_End_Freight' ) ) :
 
         public function loadStylesScripts()
         {
-            wp_enqueue_script('pr-dhl-fr-main-script', PR_DHL_PLUGIN_DIR_URL . '/assets/dist/pr-dhl-freight.js');
-            wp_localize_script('pr-dhl-fr-main-script', 'pr_dhl_freight', []);
+            wp_enqueue_script('pr-dhl-fr-main-script', PR_DHL_PLUGIN_DIR_URL . '/assets/dist/dhl.js');
+            wp_localize_script('pr-dhl-fr-main-script', 'dhl', [
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'ajax_nonce' => wp_create_nonce("dhl_freight")
+            ]);
 
-            wp_enqueue_style( 'pr-dhl-fr-main-style', PR_DHL_PLUGIN_DIR_URL . '/assets/dist/pr-dhl-freight.css');
+            wp_enqueue_style( 'pr-dhl-fr-main-style', PR_DHL_PLUGIN_DIR_URL . '/assets/dist/dhl.css');
 
             // Google MAP API Key registration
             if ($this->isGoogleMapEnabled()) {
@@ -68,22 +69,24 @@ if ( ! class_exists( 'PR_DHL_Front_End_Freight' ) ) :
 
         public function lookForServicePoints()
         {
-            check_ajax_referer( 'dhl_freight_service_points_search', 'security' );
+            check_ajax_referer( 'dhl_freight', 'security' );
 
-            $country	 = wc_clean( $_POST[ 'dhl_freight_country_code' ] );
             $postcode	 = wc_clean( $_POST[ 'dhl_freight_postal_code' ] );
             $city	 	 = wc_clean( $_POST[ 'dhl_freight_city' ] );
-            $address	 = wc_clean( $_POST[ 'parcelfinder_address' ] );
+            $address	 = wc_clean( $_POST[ 'dhl_freight_address' ] );
 
             try {
                 $dhl_obj = PR_DHL()->get_dhl_factory();
 
-                $args['address']['countryCode'] = $country;
-                $args['address']['postalCode']  = $postcode;
-                $args['address']['cityName']    = $city;
-                $args['address']['street']      = $address;
+                $args = [
+                    'postalCode' => $postcode,
+                    'cityName' => $city,
+                    'street' => $address
+                ];
 
-                $dhl_obj->get_dhl_freight_service_points($args);
+                $data = $dhl_obj->get_dhl_freight_service_points($args);
+
+                wp_send_json($data);
 
             } catch (Exception $e) {
                 wp_send_json( array( 'error' => $e->getMessage() ) );

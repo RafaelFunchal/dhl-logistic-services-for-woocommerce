@@ -11,7 +11,7 @@ let mix = require('laravel-mix');
  |
  */
 
-mix.js('assets/js/pr-dhl-freight.js', 'assets/dist').sass('assets/scss/pr-dhl-freight.scss', 'assets/dist');
+mix.js('assets/js/dhl.js', 'assets/dist').sass('assets/scss/dhl.scss', 'assets/dist');
 
 // Full API
 // mix.js(src, output);

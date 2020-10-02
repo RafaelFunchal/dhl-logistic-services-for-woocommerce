@@ -1,6 +1,8 @@
-.dff {
-  $dff-max-w: 500px;
-  $dff-spacer: 20px;
+.dhl-freight-popup {
+  $popup-max-w: 700px;
+  $popup-spacer: 20px;
+
+  $map-size: 300px;
 
   display: none;
   position: fixed;
@@ -9,15 +11,15 @@
   width: 100%;
   left: 0;
   right: 0;
-  max-width: $dff-max-w;
+  max-width: $popup-max-w;
   margin: 0 auto;
-  padding: $dff-spacer;
+  padding: $popup-spacer;
   background-color: white;
   border: 1px solid grey;
 
   &__map {
-    height: 200px;
-    margin-bottom: $dff-spacer;
+    height: $map-size;
+    margin-bottom: $popup-spacer;
 
     //Disable Google Logos
     a[href^="http://maps.google.com/maps"]{display:none !important}
@@ -33,5 +35,13 @@
 
   &__actions {
     text-align: right;
+  }
+
+  &__form {
+    display: flex;
+
+    & > label {
+      flex: 1 1 0;
+    }
   }
 }
