@@ -2,10 +2,11 @@ const availability = () => {
   const fields = document.querySelector('.dhl-freight-cf')
   const requiredFieldIds = [
     'billing_postcode',
-    'billing_country'
+    'billing_country',
   ]
-  const mustHaveCountry = 'SE'
 
+  // @todo move to the setting parameter
+  const mustHaveCountry = dhl.shopCountry.country
   /**
    * Disable Freight
    */
@@ -32,7 +33,7 @@ const availability = () => {
       let field = document.getElementById(fieldId)
 
       // If no value set atleast in one of the fields disable flow
-      if (! field.value) {
+      if (!field.value) {
         available = false
       }
 
@@ -46,7 +47,7 @@ const availability = () => {
     })
 
 
-    if (! available) {
+    if (!available) {
       disable()
 
       return;

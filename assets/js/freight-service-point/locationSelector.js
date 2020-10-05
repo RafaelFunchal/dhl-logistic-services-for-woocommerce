@@ -1,22 +1,27 @@
 import locationService from "./services/locationService";
+import shipData from "./shipData";
 
 const locationSelector = () => {
   const field = document.getElementById('dhl_freight_selected_service_point')
   const noResultsNotice = document.querySelector('.dhl-freight-cf__field-wrap__noresults')
 
-  // Billing fields
-  const postalCodeField = document.getElementById('billing_postcode')
-  const city = document.getElementById('billing_city')
-  const address = document.getElementById('billing_address_1')
-
   let data = [];
 
-  // @todo Implement cache
+  // @todo Implement cache in future
   let cached = [];
 
   const clearOptions = () => {
     // Clear options
     field.innerHTML = ''
+
+    // Add select point option
+    let option = document.createElement("option")
+
+    option.text = 'Select the service point'
+    option.disabled = true
+    option.selected = true
+
+    field.appendChild(option);
   }
 
   const disableField = () => {
@@ -38,15 +43,11 @@ const locationSelector = () => {
   const setFields = (e) => {
     const point = getPoint(e.target.value)
 
-    const shipping_country = document.getElementById('shipping_country')
-    const shipping_address_1 = document.getElementById('shipping_address_1')
-    const shipping_postcode = document.getElementById('shipping_postcode')
-    const shipping_city = document.getElementById('shipping_city')
+    shipData().setData(point)
+  }
 
-    shipping_country.value = point.countryCode
-    shipping_address_1.value = point.street
-    shipping_postcode.value = point.postalCode
-    shipping_city.value = point.cityName
+  const setValue = (id) => {
+    field.value = id
   }
 
   const setOptions = (points) => {
@@ -75,13 +76,12 @@ const locationSelector = () => {
     return data
   }
 
-
   const loadValues = () => {
     return new Promise(function (resolve, reject) {
       locationService.request({
-        postalCode: postalCodeField.value,
-        city: city.value,
-        address: address.value
+        postalCode: billingData.getPostCodeField().value,
+        city: billingData.getCityField().value,
+        address: billingData.getAddressOneField().value
       })
           .then(function (response) {
             if (response.data.error) {
@@ -117,7 +117,7 @@ const locationSelector = () => {
 
   init();
 
-  return {loadValues, getOptions}
+  return {loadValues, getOptions, setValue, setOptions}
 }
 
 export default locationSelector;

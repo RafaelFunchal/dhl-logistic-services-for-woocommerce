@@ -13,8 +13,8 @@ defined( 'ABSPATH' ) or exit;
 
     <div class="dhl-freight-popup__form">
         <label for="dhl_freight_city" class="">City<input type="text" id="dhl_freight_city" autocomplete="city" /></label>
-        <label for="dhl_freight_city" class="">Address<input type="text" id="dhl_freight_address" autocomplete="address" /></label>
-        <label for="dhl_freight_city" class="">Post Code<input type="text" id="dhl_freight_postal_code" autocomplete="postal_code" /></label>
+        <label for="dhl_freight_address" class="">Address<input type="text" id="dhl_freight_address" autocomplete="address" /></label>
+        <label for="dhl_freight_postal_code" class="">Post Code<input type="text" id="dhl_freight_postal_code" autocomplete="postal_code" /></label>
     </div>
 
 

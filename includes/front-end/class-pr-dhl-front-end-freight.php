@@ -53,10 +53,11 @@ if ( ! class_exists( 'PR_DHL_Front_End_Freight' ) ) :
 
         public function loadStylesScripts()
         {
-            wp_enqueue_script('pr-dhl-fr-main-script', PR_DHL_PLUGIN_DIR_URL . '/assets/dist/dhl.js');
+            wp_enqueue_script('pr-dhl-fr-main-script', PR_DHL_PLUGIN_DIR_URL . '/assets/dist/dhl.js', ['jquery']);
             wp_localize_script('pr-dhl-fr-main-script', 'dhl', [
                 'ajax_url' => admin_url('admin-ajax.php'),
-                'ajax_nonce' => wp_create_nonce("dhl_freight")
+                'ajax_nonce' => wp_create_nonce("dhl_freight"),
+                'shopCountry' => wc_get_base_location()
             ]);
 
             wp_enqueue_style( 'pr-dhl-fr-main-style', PR_DHL_PLUGIN_DIR_URL . '/assets/dist/dhl.css');

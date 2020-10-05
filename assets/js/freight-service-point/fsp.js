@@ -1,17 +1,20 @@
+import mapFinder from "./mapFinder";
 import availability from "./availability";
-import findPlace from "./findPlace";
 import locationSelector from "./locationSelector";
+import billingData from "./billingData";
 
 const fsp = () => {
   /**
    * Initialize functionality
    */
   const init = () => {
+    // Dropdown
+    // @todo refactor window vars
+    window.billingData = billingData()
     window.locationSelector = locationSelector()
+    window.mapFinder = mapFinder()
 
     availability().init();
-
-    document.querySelector('#dhl-fr-find') && findPlace().init();
   }
 
   return {init}
