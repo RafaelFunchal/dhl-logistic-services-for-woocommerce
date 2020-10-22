@@ -317,7 +317,7 @@ var locationSelector = function locationSelector() {
 
     var option = document.createElement("option");
     option.text = 'Select the service point';
-    option.disabled = true;
+    option.value = '';
     option.selected = true;
     field.appendChild(option);
   };
@@ -337,8 +337,21 @@ var locationSelector = function locationSelector() {
   var hideNoResults = function hideNoResults() {
     noResultsNotice.style.display = 'none';
   };
+  /**
+   * Set Value
+   *
+   * @param e
+   */
+
 
   var setFields = function setFields(e) {
+    console.log(e.target.value);
+
+    if (!e.target.value) {
+      Object(_shipData__WEBPACK_IMPORTED_MODULE_1__["default"])().clear();
+      return;
+    }
+
     var point = getPoint(e.target.value);
     Object(_shipData__WEBPACK_IMPORTED_MODULE_1__["default"])().setData(point);
   };
@@ -372,8 +385,7 @@ var locationSelector = function locationSelector() {
     return new Promise(function (resolve, reject) {
       _services_locationService__WEBPACK_IMPORTED_MODULE_0__["default"].request({
         postalCode: billingData.getPostCodeField().value,
-        city: billingData.getCityField().value,
-        address: billingData.getAddressOneField().value
+        city: billingData.getCityField().value
       }).then(function (response) {
         if (response.data.error) {
           reject(response.data.error);
@@ -437,8 +449,8 @@ var mapFinder = function mapFinder() {
   var googleMapFindButton = document.getElementById('dhl-fr-find');
   var popUpElem = document.getElementById('dhl-freight-finder');
   var popUpCloseButton = popUpElem.querySelector('.dhl-freight-popup__close');
+  var popUpSearchButton = popUpElem.querySelector('.dhl-freight-popup__search');
   var cityField = document.getElementById('dhl_freight_city');
-  var addressField = document.getElementById('dhl_freight_address');
   var postalCodeField = document.getElementById('dhl_freight_postal_code');
   var map;
   var markers = [];
@@ -459,7 +471,7 @@ var mapFinder = function mapFinder() {
   };
 
   var isEmptyForm = function isEmptyForm() {
-    return !cityField.value && !addressField.value && !postalCodeField.value;
+    return !cityField.value && !postalCodeField.value;
   };
   /**
    * Open finder popup
@@ -474,7 +486,6 @@ var mapFinder = function mapFinder() {
 
     if (isEmptyForm()) {
       cityField.value = billingData.getCityField().value;
-      addressField.value = billingData.getAddressOneField().value;
       postalCodeField.value = billingData.getPostCodeField().value;
     }
   };
@@ -528,8 +539,7 @@ var mapFinder = function mapFinder() {
   var updateMap = function updateMap() {
     _services_locationService__WEBPACK_IMPORTED_MODULE_1__["default"].request({
       postalCode: postalCodeField.value,
-      city: cityField.value,
-      address: addressField.value
+      city: cityField.value
     }).then(function (response) {
       removeMarkers();
 
@@ -560,7 +570,8 @@ var mapFinder = function mapFinder() {
         map = new google.maps.Map(googleMapElem, {
           zoom: 13,
           center: results[0].geometry.location,
-          disableDefaultUI: true
+          disableDefaultUI: true,
+          zoomControl: true
         });
         updateMap();
       }
@@ -575,9 +586,7 @@ var mapFinder = function mapFinder() {
     // Trigger map click
     googleMapFindButton.addEventListener('click', openFinder);
     popUpCloseButton.addEventListener('click', closeFinder);
-    postalCodeField.addEventListener('change', updateMap);
-    cityField.addEventListener('change', updateMap);
-    addressField.addEventListener('change', updateMap);
+    popUpSearchButton.addEventListener('click', updateMap);
   };
 
   init();
@@ -619,8 +628,7 @@ var LocationService = /*#__PURE__*/function () {
         action: this.action,
         security: dhl.ajax_nonce,
         dhl_freight_postal_code: params.postalCode,
-        dhl_freight_city: params.city,
-        dhl_freight_address: params.address
+        dhl_freight_city: params.city
       }));
     }
   }]);
@@ -645,17 +653,29 @@ var shipData = function shipData() {
   var shipping_country = document.getElementById('shipping_country');
   var shipping_address_1 = document.getElementById('shipping_address_1');
   var shipping_postcode = document.getElementById('shipping_postcode');
-  var shipping_city = document.getElementById('shipping_city');
+  var shipping_city = document.getElementById('shipping_city'); // Custom field
+
+  var dhl_freight_point_id = document.getElementById('dhl-freight-point');
 
   var setData = function setData(point) {
     shipping_country.value = point.countryCode;
     shipping_address_1.value = point.street;
     shipping_postcode.value = point.postalCode;
     shipping_city.value = point.cityName;
+    dhl_freight_point_id.value = JSON.stringify(point);
+  };
+
+  var clear = function clear() {
+    shipping_country.value = null;
+    shipping_address_1.value = null;
+    shipping_postcode.value = null;
+    shipping_city.value = null;
+    dhl_freight_point_id.value = null;
   };
 
   return {
-    setData: setData
+    setData: setData,
+    clear: clear
   };
 };
 

@@ -152,6 +152,16 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
         return $this->api_client->get_service_points($params);
     }
 
+    public function get_dhl_freight_products($args = []) {
+        $defaultParams = [
+            'toCountryCode' => 'SE'
+        ];
+
+        $params = array_merge($defaultParams, $args);
+
+        return $this->api_client->get_products(103, $params);
+    }
+
     /**
      * Retrieves the API URL.
      *

@@ -18,7 +18,7 @@ const locationSelector = () => {
     let option = document.createElement("option")
 
     option.text = 'Select the service point'
-    option.disabled = true
+    option.value = ''
     option.selected = true
 
     field.appendChild(option);
@@ -40,7 +40,19 @@ const locationSelector = () => {
     noResultsNotice.style.display = 'none'
   }
 
+  /**
+   * Set Value
+   *
+   * @param e
+   */
   const setFields = (e) => {
+    if (! e.target.value) {
+
+      shipData().clear()
+
+      return
+    }
+
     const point = getPoint(e.target.value)
 
     shipData().setData(point)
@@ -81,7 +93,6 @@ const locationSelector = () => {
       locationService.request({
         postalCode: billingData.getPostCodeField().value,
         city: billingData.getCityField().value,
-        address: billingData.getAddressOneField().value
       })
           .then(function (response) {
             if (response.data.error) {
@@ -112,6 +123,10 @@ const locationSelector = () => {
    * Initialize functionality
    */
   const init = () => {
+    if (! field) {
+      return
+    }
+
     field.addEventListener('change', setFields)
   }
 

@@ -40,7 +40,7 @@ class PR_DHL_WC {
 	 * @var PR_DHL_WC
 	 */
 	protected static $_instance = null;
-	
+
 	/**
 	 * DHL Shipping Order for label and tracking.
 	 *
@@ -54,7 +54,7 @@ class PR_DHL_WC {
 	 * @var PR_DHL_Paket_Front_End
 	 */
 	protected $shipping_dhl_frontend = null;
-	
+
 	/**
 	 * DHL Shipping Order for label and tracking.
 	 *
@@ -85,7 +85,7 @@ class PR_DHL_WC {
 
 	// These are all considered domestic by DHL
 	protected $us_territories = array( 'US', 'GU', 'AS', 'PR', 'UM', 'VI' );
-		
+
 	/**
 	* Construct the plugin.
 	*/
@@ -153,7 +153,7 @@ class PR_DHL_WC {
 		$this->define( 'PR_DHL_PARCELSHOP', __('Postfiliale ', 'pr-shipping-dhl') );
 		$this->define( 'PR_DHL_POST_OFFICE', __('Postfiliale ', 'pr-shipping-dhl') );
 	}
-	
+
 	/**
 	 * Include required core files used in admin and on the frontend.
 	 */
@@ -163,7 +163,7 @@ class PR_DHL_WC {
 		// Load abstract classes
 		include_once( 'includes/abstract-pr-dhl-wc-order.php' );
 		include_once( 'includes/abstract-pr-dhl-wc-product.php' );
-		
+
 		// Composer autoloader
 		include_once( 'vendor/autoload.php' );
 	}
@@ -218,12 +218,12 @@ class PR_DHL_WC {
         // Add state field for 'VN'
         add_filter( 'woocommerce_states', array( $this, 'add_vn_states' ) );
     }
-	
+
 	public function get_pr_dhl_wc_order() {
 		if ( ! isset( $this->shipping_dhl_order ) ){
 			try {
 				$dhl_obj = $this->get_dhl_factory();
-				
+
 				if( $dhl_obj->is_dhl_paket() ) {
 					$this->shipping_dhl_order = new PR_DHL_WC_Order_Paket();
 					$this->shipping_dhl_frontend = new PR_DHL_Front_End_Paket();
@@ -238,7 +238,7 @@ class PR_DHL_WC {
                 } elseif ( $dhl_obj->is_dhl_freight() ) {
 				    $this->shipping_dhl_frontend = new PR_DHL_Front_End_Freight();
                 }
-				
+
 				// Ensure DHL Labels folder exists
 				$this->dhl_label_folder_check();
 			} catch (Exception $e) {
@@ -253,7 +253,7 @@ class PR_DHL_WC {
 		if ( ! isset( $this->shipping_dhl_product ) ){
 			try {
 				$dhl_obj = $this->get_dhl_factory();
-				
+
 				if( $dhl_obj->is_dhl_paket() ) {
 					$this->shipping_dhl_product = new PR_DHL_WC_Product_Paket();
 				} elseif( $dhl_obj->is_dhl_ecs_asia() ) {
@@ -261,7 +261,7 @@ class PR_DHL_WC {
 				} elseif( $dhl_obj->is_dhl_ecomm() ) {
 					$this->shipping_dhl_product = new PR_DHL_WC_Product_Ecomm();
 				}
-				
+
 			} catch (Exception $e) {
 				add_action( 'admin_notices', array( $this, 'environment_check' ) );
 			}
@@ -281,7 +281,7 @@ class PR_DHL_WC {
 		// Enqueue Styles
 		wp_enqueue_style( 'wc-shipment-dhl-label-css', PR_DHL_PLUGIN_DIR_URL . '/assets/css/pr-dhl-admin.css' );
 
-		// Enqueue Scripts		
+		// Enqueue Scripts
         $screen    = get_current_screen();
         $screen_id = $screen ? $screen->id : '';
 
@@ -348,7 +348,7 @@ class PR_DHL_WC {
 				$shipping_method['pr_dhl_dp'] = $pr_dhl_ship_meth;
 			} elseif( $dhl_obj->is_dhl_freight() ) {
                 $pr_dhl_ship_meth = 'PR_DHL_WC_Method_Freight_Post';
-                $shipping_method['pr_dhl_fr_se'] = $pr_dhl_ship_meth;
+                $shipping_method['pr_dhl_fr'] = $pr_dhl_ship_meth;
             }
 
 		} catch (Exception $e) {
@@ -396,8 +396,8 @@ class PR_DHL_WC {
 		// $client_id = isset( $shipping_dhl_settings['dhl_api_key'] ) ? $shipping_dhl_settings['dhl_api_key'] : '';
 		// $client_secret = isset( $shipping_dhl_settings['dhl_api_secret'] ) ? $shipping_dhl_settings['dhl_api_secret'] : '';
 
-		try {	
-			$dhl_obj = PR_DHL_API_Factory::make_dhl( $base_country_code );		
+		try {
+			$dhl_obj = PR_DHL_API_Factory::make_dhl( $base_country_code );
 		} catch (Exception $e) {
 			throw $e;
 		}
@@ -410,7 +410,7 @@ class PR_DHL_WC {
 		try {
 
 			$dhl_obj = $this->get_dhl_factory();
-			
+
 			if( $dhl_obj->is_dhl_paket() ) {
 
 				if ( defined( 'PR_DHL_SANDBOX' ) && PR_DHL_SANDBOX ) {
@@ -428,7 +428,7 @@ class PR_DHL_WC {
 			} elseif( $dhl_obj->is_dhl_ecs_asia() ) {
 
 				return $dhl_obj->get_api_url();
-				
+
             } elseif( $dhl_obj->is_dhl_ecomm() ) {
 
 				$shipping_dhl_settings = $this->get_shipping_dhl_settings();
@@ -443,10 +443,10 @@ class PR_DHL_WC {
 			} elseif( $dhl_obj->is_dhl_deutsche_post() ) {
 			    return $dhl_obj->get_api_url();
             }
-			
-			
+
+
 		} catch (Exception $e) {
-			throw new Exception('Cannot get DHL api credentials!');			
+			throw new Exception('Cannot get DHL api credentials!');
 		}
 	}
 
@@ -455,7 +455,7 @@ class PR_DHL_WC {
 
 		try {
 			$dhl_obj = $this->get_dhl_factory();
-			
+
 			if( $dhl_obj->is_dhl_paket() ) {
 				$dhl_settings = get_option('woocommerce_pr_dhl_paket_settings');
 			} elseif( $dhl_obj->is_dhl_ecomm() ) {
@@ -480,11 +480,11 @@ class PR_DHL_WC {
 		try {
 
 			$shipping_dhl_settings = $this->get_shipping_dhl_settings();
-			
+
 			$dhl_obj = $this->get_dhl_factory();
 
 			if( $dhl_obj->is_dhl_paket() ) {
-				$api_user = $shipping_dhl_settings['dhl_api_user']; 
+				$api_user = $shipping_dhl_settings['dhl_api_user'];
 				$api_pwd = $shipping_dhl_settings['dhl_api_pwd'];
 			} elseif( $dhl_obj->is_dhl_ecs_asia() ) {
 				list($api_user, $api_pwd) = $dhl_obj->get_api_creds();
@@ -495,15 +495,15 @@ class PR_DHL_WC {
 			    list($api_user, $api_pwd) = $dhl_obj->get_api_creds();
 			} else {
 				throw new Exception( __('Country not supported', 'pr-shipping-dhl') );
-				
+
 			}
 
 			$connection = $dhl_obj->dhl_test_connection( $api_user, $api_pwd );
-				
+
 			$connection_msg = __('Connection Successful!', 'pr-shipping-dhl');
 			$this->log_msg( $connection_msg );
 
-			wp_send_json( array( 
+			wp_send_json( array(
 				'connection_success' 	=> $connection_msg,
 				'button_txt'			=> PR_DHL_BUTTON_TEST_CONNECTION
 				) );
@@ -511,7 +511,7 @@ class PR_DHL_WC {
 		} catch (Exception $e) {
 			$this->log_msg($e->getMessage());
 
-			wp_send_json( array( 
+			wp_send_json( array(
 				'connection_error' => sprintf( __('Connection Failed: %s Make sure to save the settings before testing the connection. ', 'pr-shipping-dhl'), $e->getMessage() ),
 				'button_txt'			=> PR_DHL_BUTTON_TEST_CONNECTION
 				 ) );
@@ -525,13 +525,13 @@ class PR_DHL_WC {
 		try {
 			$shipping_dhl_settings = $this->get_shipping_dhl_settings();
 			$dhl_debug = isset( $shipping_dhl_settings['dhl_debug'] ) ? $shipping_dhl_settings['dhl_debug'] : 'yes';
-			
+
 			if( ! $this->logger ) {
 				$this->logger = new PR_DHL_Logger( $dhl_debug );
 			}
 
 			$this->logger->write( $msg );
-			
+
 		} catch (Exception $e) {
 			// do nothing
 		}
@@ -542,13 +542,13 @@ class PR_DHL_WC {
 		try {
 			$shipping_dhl_settings = $this->get_shipping_dhl_settings();
 			$dhl_debug = isset( $shipping_dhl_settings['dhl_debug'] ) ? $shipping_dhl_settings['dhl_debug'] : 'yes';
-			
+
 			if( ! $this->logger ) {
 				$this->logger = new PR_DHL_Logger( $dhl_debug );
 			}
-			
+
 			return $this->logger->get_log_url( );
-			
+
 		} catch (Exception $e) {
 			throw $e;
 		}
@@ -587,8 +587,8 @@ class PR_DHL_WC {
 
 		$exclusion_work_day = array( );
 		$work_days = array(
-		            'Mon' => __('mon', 'pr-shipping-dhl'), 
-		            'Tue' => __('tue', 'pr-shipping-dhl'), 
+		            'Mon' => __('mon', 'pr-shipping-dhl'),
+		            'Tue' => __('tue', 'pr-shipping-dhl'),
 		            'Wed' => __('wed', 'pr-shipping-dhl'),
 		            'Thu' => __('thu', 'pr-shipping-dhl'),
 		            'Fri' => __('fri', 'pr-shipping-dhl'),
@@ -613,7 +613,7 @@ class PR_DHL_WC {
 	public function set_payment_gateways() {
 		try {
 			$dhl_obj = $this->get_dhl_factory();
-					
+
 			if( $dhl_obj->is_dhl_paket() ) {
 				$wc_payment_gateways = WC()->payment_gateways()->payment_gateways();
 
@@ -633,11 +633,11 @@ class PR_DHL_WC {
 	/**
 	 * Function return whether the sender and receiver country is the same territory
 	 */
-	public function is_shipping_domestic( $country_receiver ) {   	 
+	public function is_shipping_domestic( $country_receiver ) {
 
 		// If base is US territory
 		if( in_array( $this->base_country_code, $this->us_territories ) ) {
-			
+
 			// ...and destination is US territory, then it is "domestic"
 			if( in_array( $country_receiver, $this->us_territories ) ) {
 				return true;
@@ -766,10 +766,10 @@ class PR_DHL_WC {
     }
 
     public function add_vn_states( $states ) {
-    	
+
         try {
 			$dhl_obj = $this->get_dhl_factory();
-			
+
 			if( $dhl_obj->is_dhl_ecomm() ) {
 				if ( empty( $states['VN'] ) ) {
 					include( PR_DHL_PLUGIN_DIR_PATH . '/states/VN.php' );

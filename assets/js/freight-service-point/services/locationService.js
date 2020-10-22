@@ -9,7 +9,6 @@ class LocationService {
       security: dhl.ajax_nonce,
       dhl_freight_postal_code: params.postalCode,
       dhl_freight_city: params.city,
-      dhl_freight_address: params.address
     }))
   }
 }

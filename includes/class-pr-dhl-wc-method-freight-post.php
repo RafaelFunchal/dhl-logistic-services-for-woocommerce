@@ -12,8 +12,9 @@ class PR_DHL_WC_Method_Freight_Post extends WC_Shipping_Method {
     public function __construct( $instance_id = 0 ) {
         $this->id = 'pr_dhl_fr';
         $this->instance_id = absint( $instance_id );
+        $this->title = __( 'Freight Post', 'pr-shipping-dhl' );
         $this->method_title = __( 'Freight Post', 'pr-shipping-dhl' );
-        $this->method_description = '';
+        $this->method_description =  __( 'Freight Post', 'pr-shipping-dhl' );
 
         $this->init();
     }
@@ -185,7 +186,7 @@ class PR_DHL_WC_Method_Freight_Post extends WC_Shipping_Method {
             echo $this->get_message( __( 'Could not reset connection: ', 'pr-shipping-dhl' ) . $e->getMessage() );
             // throw $e;
         }
-		
+
         return parent::process_admin_options();
     }
 }

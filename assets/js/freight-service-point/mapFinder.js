@@ -6,9 +6,9 @@ const mapFinder = () => {
   const googleMapFindButton = document.getElementById('dhl-fr-find')
   const popUpElem = document.getElementById('dhl-freight-finder')
   const popUpCloseButton = popUpElem.querySelector('.dhl-freight-popup__close')
+  const popUpSearchButton = popUpElem.querySelector('.dhl-freight-popup__search')
 
   const cityField = document.getElementById('dhl_freight_city')
-  const addressField = document.getElementById('dhl_freight_address')
   const postalCodeField = document.getElementById('dhl_freight_postal_code')
 
   let map;
@@ -27,7 +27,7 @@ const mapFinder = () => {
   }
 
   const isEmptyForm = () => {
-    return ! cityField.value && ! addressField.value && ! postalCodeField.value
+    return ! cityField.value && ! postalCodeField.value
   }
 
   /**
@@ -42,7 +42,6 @@ const mapFinder = () => {
 
     if (isEmptyForm()) {
       cityField.value = billingData.getCityField().value
-      addressField.value = billingData.getAddressOneField().value
       postalCodeField.value = billingData.getPostCodeField().value
     }
   }
@@ -102,7 +101,6 @@ const mapFinder = () => {
     locationService.request({
       postalCode: postalCodeField.value,
       city: cityField.value,
-      address: addressField.value
     })
         .then(function (response) {
           removeMarkers()
@@ -137,6 +135,7 @@ const mapFinder = () => {
           zoom: 13,
           center: results[0].geometry.location,
           disableDefaultUI: true,
+          zoomControl: true,
         });
 
         updateMap()
@@ -149,11 +148,16 @@ const mapFinder = () => {
    */
   const init = () => {
     // Trigger map click
-    googleMapFindButton.addEventListener('click', openFinder)
+    if (! popUpElem) {
+      return
+    }
+
+    if (googleMapFindButton) {
+      googleMapFindButton.addEventListener('click', openFinder)
+    }
+
     popUpCloseButton.addEventListener('click', closeFinder)
-    postalCodeField.addEventListener('change', updateMap)
-    cityField.addEventListener('change', updateMap)
-    addressField.addEventListener('change', updateMap)
+    popUpSearchButton.addEventListener('click', updateMap)
   }
 
   init();
