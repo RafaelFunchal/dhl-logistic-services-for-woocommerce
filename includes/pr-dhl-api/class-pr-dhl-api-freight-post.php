@@ -75,11 +75,13 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
 
     public function get_dhl_products_international()
     {
+        return [103];
         // TODO: Implement get_dhl_products_international() method.
     }
 
     public function get_dhl_products_domestic()
     {
+        return $this->get_dhl_products_international();
         // TODO: Implement get_dhl_products_domestic() method.
     }
 

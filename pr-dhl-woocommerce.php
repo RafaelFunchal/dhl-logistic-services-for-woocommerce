@@ -236,6 +236,7 @@ class PR_DHL_WC {
 				} elseif ( $dhl_obj->is_dhl_deutsche_post() ) {
 				    $this->shipping_dhl_order = new PR_DHL_WC_Order_Deutsche_Post();
                 } elseif ( $dhl_obj->is_dhl_freight() ) {
+                    $this->shipping_dhl_order = new PR_DHL_WC_Order_Freight();
 				    $this->shipping_dhl_frontend = new PR_DHL_Front_End_Freight();
                 }
 
