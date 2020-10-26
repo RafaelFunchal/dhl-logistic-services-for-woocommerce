@@ -53,6 +53,14 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                 if (! isset($items[$field_name])) {
                     $items[$field_name] = false;
                 }
+
+                if ($field_name === 'pr_dhl_insurance') {
+                    $insurance_amount_field_name = sprintf('%s_amount', $field_name);
+
+                    if (! isset($items[$insurance_amount_field_name])) {
+                        $items[$insurance_amount_field_name] = $order->get_total();
+                    }
+                }
             }
 
             return $items;
@@ -64,22 +72,44 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
             {
                 $field_name = sprintf('pr_dhl_%s', $additional_service->type);
 
-                woocommerce_wp_checkbox( array(
+                woocommerce_wp_checkbox([
                     'id'          		=> $field_name,
                     'label'       		=> __( $additional_service->name, 'pr-shipping-dhl' ),
                     'placeholder' 		=> '',
                     'description'		=> '',
                     'value'       		=> isset( $dhl_label_items[$field_name] ) ? $dhl_label_items[$field_name] : $this->shipping_dhl_settings[$field_name],
                     'custom_attributes'	=> array( $is_disabled => $is_disabled )
-                ) );
+                ]);
+
+                if ($field_name === 'pr_dhl_insurance') {
+
+                    $insurance_amount_field_name = sprintf('%s_amount', $field_name);
+
+                    woocommerce_wp_text_input([
+                        'id'          		=> $insurance_amount_field_name,
+                        'label'       		=> __( 'Insurance Amount:', 'pr-shipping-dhl' ),
+                        'placeholder' 		=> '',
+                        'description'		=> '',
+                        'value'       		=>
+                            isset( $dhl_label_items[$insurance_amount_field_name] ) ?
+                                $dhl_label_items[$insurance_amount_field_name] :
+                                $this->shipping_dhl_settings[$insurance_amount_field_name],
+                        'custom_attributes'	=> array( $is_disabled => $is_disabled )
+                    ]);
+                }
             }
         }
 
         public function get_additional_meta_ids()
         {
-            return collect($this->additional_services)->map(function ($item) {
+            $fields = collect($this->additional_services)
+                ->map(function ($item) {
                 return sprintf('pr_dhl_%s', $item->type);
-            })->toArray();
+                })
+                ->add('pr_dhl_insurance_amount')
+                ->toArray();
+
+            return $fields;
         }
 
         protected function get_label_args_settings($order_id, $dhl_label_items)
