@@ -62,4 +62,23 @@ class Client extends API_Client
             sprintf( __( 'API error: %s', 'pr-shipping-dhl' ), $message )
         );
     }
+
+    public function validate_postal_code($params)
+    {
+        $response = $this->post('postalcodeapi/v1/postalcodes/validate', $params);
+
+        if ($response->status === 200) {
+            return $response->body;
+        }
+
+        $message = ! empty($response->body->error)
+            ? $response->body->error
+            : ( ! empty($response->body->errorMessage)
+                ? $response->body->errorMessage
+                : __('No message sent!', 'pr-shipping-dhl') );
+
+        throw new \Exception(
+            sprintf( __( 'API error: %s', 'pr-shipping-dhl' ), $message )
+        );
+    }
 }

@@ -40,7 +40,9 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
 
             $order = wc_get_order($order_id);
 
-            $this->additional_services = $order->get_meta('dhl_freight_additional_services', true);
+            if (! $this->additional_services) {
+                $this->setAdditionalServices();
+            }
 
             if (! is_array($items)) {
                 $items = [];
@@ -102,12 +104,18 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
 
         public function get_additional_meta_ids()
         {
+            if (! $this->additional_services) {
+                $this->setAdditionalServices();
+            }
+
             $fields = collect($this->additional_services)
                 ->map(function ($item) {
                 return sprintf('pr_dhl_%s', $item->type);
                 })
                 ->add('pr_dhl_insurance_amount')
                 ->toArray();
+
+            print_r($fields);
 
             return $fields;
         }
@@ -129,6 +137,34 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
 //            }
 //
 //            return $args;
+        }
+
+        public function save_meta_box_ajax()
+        {
+            check_ajax_referer( 'create-dhl-label', 'pr_dhl_label_nonce' );
+            $order_id = wc_clean( $_POST[ 'order_id' ] );
+
+            // Save inputted data first
+            $this->save_meta_box( $order_id );
+
+            echo 'gud';
+
+            die();
+        }
+
+        private function setAdditionalServices()
+        {
+            global $post;
+
+            $post_id = $post ? $post : (isset($_POST['order_id']) && $_POST['order_id'] ? $_POST['order_id'] : null );
+
+            if (! $post_id) {
+                return;
+            }
+
+            $order = wc_get_order($post_id);
+
+            $this->additional_services = $order->get_meta('dhl_freight_additional_services', true);
         }
     }
 

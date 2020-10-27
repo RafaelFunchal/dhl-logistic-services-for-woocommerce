@@ -154,6 +154,13 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
         return $this->api_client->get_service_points($params);
     }
 
+    /**
+     * Get Freight Additional Services
+     *
+     * @param array $args
+     * @return mixed
+     * @throws Exception
+     */
     public function get_dhl_freight_products($args = []) {
         $defaultParams = [
             'toCountryCode' => 'SE'
@@ -162,6 +169,23 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
         $params = array_merge($defaultParams, $args);
 
         return $this->api_client->get_products(103, $params);
+    }
+
+    /**
+     * @param array $args
+     * @return stdClass|string
+     * @throws Exception
+     */
+    public function dhl_valid_postal_code($args = []) {
+        $default = [
+            'countryCode' => 'SE',
+            'postalCode' => '',
+            'city' => '',
+        ];
+
+        $params = array_merge($default, $args);
+
+        return $this->api_client->validate_postal_code($params);
     }
 
     /**
