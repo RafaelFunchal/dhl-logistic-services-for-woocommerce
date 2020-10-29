@@ -160,6 +160,42 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                     throw new Exception(__('Invalid postal code!', 'pr-shipping-dhl'));
                 }
 
+
+                $results = $dhl_obj->dhl_pickup_request([
+                    'parties' => [
+                        [
+                            'id' => $order_id,
+                            'type' => 'AccessPoint',
+                            'name' => $args['shipping_address']['name'],
+                            'contactName' => $args['shipping_address']['name'],
+                            'references' => [$order_id],
+                            'address' => [
+                                'street' => $args['shipping_address']['address_1'],
+                                'streetNumber' => '',
+                                'cityName' => $args['shipping_address']['city'],
+                                'postalCode' => $args['shipping_address']['postcode'],
+                                'countryCode' => $args['shipping_address']['country']
+                            ],
+                            'phone' => $args['shipping_address']['phone'],
+                            'email' => $args['shipping_address']['email'],
+                            'fax' => ''
+                        ]
+                    ],
+                    'pieces' => [
+                        [
+                            'numberOfPieces' => 1,
+                            'weight' => $args['order_details']['weight']
+                        ]
+                    ],
+                    //'id' => $order_id,
+                    'additionalServices' => $this->mapDhlAdditionalServices($args, $order_id),
+                    'totalWeight' => $args['order_details']['weight']
+                ]);
+
+                print_r($results);
+
+                die();
+
             } catch ( Exception $e ) {
 
                 wp_send_json( array( 'error' => $e->getMessage() ) );
@@ -168,9 +204,45 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
             wp_die();
         }
 
-        private function validatePostalCode($args)
+        private function mapDhlAdditionalServices($args, $order_id)
         {
+            $add_services = $this->get_dhl_label_items($order_id);
+            $results = [];
 
+            $map = [
+                'notification' => 'pr_dhl_notificationByLetter',
+                'insurance' => 'pr_dhl_insurance',
+                'cashOnDelivery' => 'pr_dhl_cashOnDelivery',
+                'dangerousGoodsLimitedQuantity' => 'pr_dhl_dangerousGoodsLimitedQuantity',
+            ];
+
+            foreach ($map as $apiKey => $wpKey) {
+
+                switch ($apiKey) {
+                    case 'cashOnDelivery':
+                    case 'insurance':
+
+                        if (isset($add_services[$wpKey]) && $add_services[$wpKey] === 'yes') {
+                            $results[$apiKey] = [
+                                'value' => isset($add_services['pr_dhl_insurance_amount']) ?
+                                    $add_services['pr_dhl_insurance_amount'] :
+                                    $args['order_details']['total_value'],
+                                'currency' => $args['order_details']['currency'],
+                            ];
+                        }
+
+                        break;
+
+                    default:
+
+                        $results[$apiKey] = isset($add_services[$wpKey]) && $add_services[$wpKey] === 'yes';
+
+                        break;
+                }
+
+            }
+
+            return $results;
         }
 
         private function setAdditionalServices()

@@ -25,6 +25,21 @@ class Client extends API_Client
         parent::__construct( $base_url, $driver, $auth );
     }
 
+    private function throwError($response)
+    {
+        $message = ! empty($response->body->error)
+            ? $response->body->error
+            : ( ! empty($response->body->errorMessage)
+                ? $response->body->errorMessage
+                : ( ! empty($response->body->UserMessage)
+                ? $response->body->UserMessage
+                : __('No message sent!', 'pr-shipping-dhl') ) );
+
+        throw new \Exception(
+            sprintf( __( 'API error: %s', 'pr-shipping-dhl' ), $message )
+        );
+    }
+
     public function get_products($product_code, $params)
     {
         $response = $this->get('productapi/v1/products/' . $product_code, $params);
@@ -33,15 +48,7 @@ class Client extends API_Client
             return $response->body->additionalServices;
         }
 
-        $message = ! empty($response->body->error)
-            ? $response->body->error
-            : ( ! empty($response->body->errorMessage)
-                ? $response->body->errorMessage
-                : __('No message sent!', 'pr-shipping-dhl') );
-
-        throw new \Exception(
-            sprintf( __( 'API error: %s', 'pr-shipping-dhl' ), $message )
-        );
+        $this->throwError($response);
     }
 
     public function get_service_points($params)
@@ -52,15 +59,7 @@ class Client extends API_Client
             return $response->body->servicePoints;
         }
 
-        $message = ! empty($response->body->error)
-            ? $response->body->error
-            : ( ! empty($response->body->errorMessage)
-                ? $response->body->errorMessage
-                : __('No message sent!', 'pr-shipping-dhl') );
-
-        throw new \Exception(
-            sprintf( __( 'API error: %s', 'pr-shipping-dhl' ), $message )
-        );
+        $this->throwError($response);
     }
 
     public function validate_postal_code($params)
@@ -71,14 +70,17 @@ class Client extends API_Client
             return $response->body;
         }
 
-        $message = ! empty($response->body->error)
-            ? $response->body->error
-            : ( ! empty($response->body->errorMessage)
-                ? $response->body->errorMessage
-                : __('No message sent!', 'pr-shipping-dhl') );
+        $this->throwError($response);
+    }
 
-        throw new \Exception(
-            sprintf( __( 'API error: %s', 'pr-shipping-dhl' ), $message )
-        );
+    public function pickup_request($params)
+    {
+        $response = $this->post('pickuprequestapi/v1/pickuprequest/pickuprequest', $params);
+print_r($response);
+        if ($response->status === 200) {
+            return $response->body;
+        }
+
+        $this->throwError($response);
     }
 }

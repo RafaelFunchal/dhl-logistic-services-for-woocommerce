@@ -188,6 +188,43 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
         return $this->api_client->validate_postal_code($params);
     }
 
+    public function dhl_pickup_request($args = []) {
+        $default = [
+            'payerCode' => [
+                'code' => 1
+            ],
+            'parties' => [
+                [
+                    'id' => null,
+                    'type' => 'AccessPoint',
+                    'name' => null,
+                    'contactName' => null,
+                    'references' => [],
+                    'address' => [
+                        'street' => null,
+                        'cityName' => null,
+                        'postalCode' => null,
+                        'countryCode' => 'SE'
+                    ],
+                    'phone' => null,
+                    'email' => null,
+                ]
+            ],
+            'pieces' => [
+                [
+                    'weight' => null,
+                ]
+            ],
+            'additionalServices' => [],
+            'totalWeight' => null,
+            'totalNumberOfPieces' => 1,
+        ];
+
+        $params = array_merge($default, $args);
+
+        return $this->api_client->pickup_request($params);
+    }
+
     /**
      * Retrieves the API URL.
      *
