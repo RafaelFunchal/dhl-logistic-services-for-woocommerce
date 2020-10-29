@@ -115,8 +115,6 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                 ->add('pr_dhl_insurance_amount')
                 ->toArray();
 
-            print_r($fields);
-
             return $fields;
         }
 
@@ -147,9 +145,32 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
             // Save inputted data first
             $this->save_meta_box( $order_id );
 
-            echo 'gud';
+            try {
+                // Gather args for DHL API call
+                $args = $this->get_label_args( $order_id );
 
-            die();
+                $dhl_obj = PR_DHL()->get_dhl_factory();
+
+                if (
+                    ! $dhl_obj->dhl_valid_postal_code([
+                        'city' => $args['shipping_address']['city'],
+                        'postalCode' => $args['shipping_address']['postcode']
+                    ])
+                ) {
+                    throw new Exception(__('Invalid postal code!', 'pr-shipping-dhl'));
+                }
+
+            } catch ( Exception $e ) {
+
+                wp_send_json( array( 'error' => $e->getMessage() ) );
+            }
+
+            wp_die();
+        }
+
+        private function validatePostalCode($args)
+        {
+
         }
 
         private function setAdditionalServices()
