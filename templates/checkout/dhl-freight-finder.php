@@ -13,8 +13,14 @@ defined( 'ABSPATH' ) or exit;
         <h4>Service Point Finder</h4>
 
         <div class="dhl-freight-popup__form">
-            <label for="dhl_freight_city" class="">City<input type="text" id="dhl_freight_city" autocomplete="city" /></label>
-            <label for="dhl_freight_postal_code" class="">Post Code<input type="text" id="dhl_freight_postal_code" autocomplete="postal_code" /></label>
+            <label for="dhl_freight_city" class="">
+                City
+                <input type="text" id="dhl_freight_city" class="dhl-freight-popup__form-field" autocomplete="city" />
+            </label>
+            <label for="dhl_freight_postal_code" class="">
+                Post Code
+                <input type="text" id="dhl_freight_postal_code" class="dhl-freight-popup__form-field" autocomplete="postal_code" />
+            </label>
         </div>
 
         <div class="dhl-freight-popup__form-actions">

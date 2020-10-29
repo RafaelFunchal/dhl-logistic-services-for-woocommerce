@@ -345,8 +345,6 @@ var locationSelector = function locationSelector() {
 
 
   var setFields = function setFields(e) {
-    console.log(e.target.value);
-
     if (!e.target.value) {
       Object(_shipData__WEBPACK_IMPORTED_MODULE_1__["default"])().clear();
       return;
@@ -414,6 +412,10 @@ var locationSelector = function locationSelector() {
 
 
   var init = function init() {
+    if (!field) {
+      return;
+    }
+
     field.addEventListener('change', setFields);
   };
 
@@ -584,7 +586,14 @@ var mapFinder = function mapFinder() {
 
   var init = function init() {
     // Trigger map click
-    googleMapFindButton.addEventListener('click', openFinder);
+    if (!popUpElem) {
+      return;
+    }
+
+    if (googleMapFindButton) {
+      googleMapFindButton.addEventListener('click', openFinder);
+    }
+
     popUpCloseButton.addEventListener('click', closeFinder);
     popUpSearchButton.addEventListener('click', updateMap);
   };
@@ -664,9 +673,12 @@ var shipData = function shipData() {
     shipping_city.value = point.cityName;
     dhl_freight_point_id.value = JSON.stringify(point);
   };
+  /**
+   * Clear all fields except country
+   */
+
 
   var clear = function clear() {
-    shipping_country.value = null;
     shipping_address_1.value = null;
     shipping_postcode.value = null;
     shipping_city.value = null;
