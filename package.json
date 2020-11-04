@@ -27,6 +27,7 @@
   "dependencies": {
     "axios": "^0.20.0",
     "cross-env": "^7.0.2",
+    "flatpickr": "^4.6.6",
     "qs": "^6.9.4"
   }
 }

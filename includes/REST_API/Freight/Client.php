@@ -45,7 +45,7 @@ class Client extends API_Client
         $response = $this->get('productapi/v1/products/' . $product_code, $params);
 
         if ($response->status === 200 && isset($response->body->additionalServices)) {
-            return $response->body->additionalServices;
+            return $response->body;
         }
 
         $this->throwError($response);

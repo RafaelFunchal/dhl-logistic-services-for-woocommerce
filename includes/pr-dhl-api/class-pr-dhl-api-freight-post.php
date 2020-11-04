@@ -193,31 +193,12 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
             'payerCode' => [
                 'code' => 1
             ],
-            'parties' => [
-                [
-                    'id' => null,
-                    'type' => 'AccessPoint',
-                    'name' => null,
-                    'contactName' => null,
-                    'references' => [],
-                    'address' => [
-                        'street' => null,
-                        'cityName' => null,
-                        'postalCode' => null,
-                        'countryCode' => 'SE'
-                    ],
-                    'phone' => null,
-                    'email' => null,
-                ]
-            ],
-            'pieces' => [
-                [
-                    'weight' => null,
-                ]
-            ],
+            'parties' => [],
+            'pieces' => [],
             'additionalServices' => [],
             'totalWeight' => null,
             'totalNumberOfPieces' => 1,
+            'pickupDate' => null,
         ];
 
         $params = array_merge($default, $args);

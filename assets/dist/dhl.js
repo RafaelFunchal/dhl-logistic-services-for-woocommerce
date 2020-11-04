@@ -695,6 +695,17 @@ var shipData = function shipData() {
 
 /***/ }),
 
+/***/ "./assets/scss/dhl-admin.scss":
+/*!************************************!*\
+  !*** ./assets/scss/dhl-admin.scss ***!
+  \************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+
 /***/ "./assets/scss/dhl.scss":
 /*!******************************!*\
   !*** ./assets/scss/dhl.scss ***!
@@ -3615,14 +3626,15 @@ module.exports = {
 /***/ }),
 
 /***/ 0:
-/*!*******************************************************!*\
-  !*** multi ./assets/js/dhl.js ./assets/scss/dhl.scss ***!
-  \*******************************************************/
+/*!************************************************************************************!*\
+  !*** multi ./assets/js/dhl.js ./assets/scss/dhl.scss ./assets/scss/dhl-admin.scss ***!
+  \************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(/*! /Users/sidassnieska/Sites/wptest/wp-content/plugins/dhl-for-woocommerce/assets/js/dhl.js */"./assets/js/dhl.js");
-module.exports = __webpack_require__(/*! /Users/sidassnieska/Sites/wptest/wp-content/plugins/dhl-for-woocommerce/assets/scss/dhl.scss */"./assets/scss/dhl.scss");
+__webpack_require__(/*! /Users/sidassnieska/Sites/wptest/wp-content/plugins/dhl-for-woocommerce/assets/scss/dhl.scss */"./assets/scss/dhl.scss");
+module.exports = __webpack_require__(/*! /Users/sidassnieska/Sites/wptest/wp-content/plugins/dhl-for-woocommerce/assets/scss/dhl-admin.scss */"./assets/scss/dhl-admin.scss");
 
 
 /***/ })
