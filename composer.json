@@ -9,5 +9,8 @@
         "psr-4": {
             "PR\\DHL\\": "includes"
         }
+    },
+    "require": {
+        "tightenco/collect": "^8.0"
     }
 }
