@@ -76,11 +76,22 @@ class Client extends API_Client
     public function pickup_request($params)
     {
         $response = $this->post('pickuprequestapi/v1/pickuprequest/pickuprequest', $params);
-print_r($response);
+
         if ($response->status === 200) {
             return $response->body;
         }
 
         $this->throwError($response);
+    }
+
+    public function transportation_request($params)
+    {
+        $response = $this->post('transportinstructionapi/v1/transportinstruction/sendtransportinstruction', $params);
+
+        if ($response->status === 'Succes') {
+            return $response->body->transportInstruction;
+        }
+
+        throw new \Exception($response->body->validationErrors[0]->message);
     }
 }

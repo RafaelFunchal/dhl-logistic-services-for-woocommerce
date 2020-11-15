@@ -206,6 +206,24 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
         return $this->api_client->pickup_request($params);
     }
 
+    public function dhl_transportation_request($args) {
+        $default = [
+            'payerCode' => [
+                'code' => 1
+            ],
+            'parties' => [],
+            'pieces' => [],
+            'additionalServices' => [],
+            'totalWeight' => null,
+            'totalNumberOfPieces' => 1,
+            'pickupDate' => null,
+        ];
+
+        $params = array_merge($default, $args);
+
+        return $this->api_client->transportation_request($params);
+    }
+
     /**
      * Retrieves the API URL.
      *

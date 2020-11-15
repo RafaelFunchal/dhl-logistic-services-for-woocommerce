@@ -210,7 +210,8 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                 $this
                     ->checkRules($order_id, $params)
                     ->validatePickupPoint()
-                    ->requestPickup($order_id, $params);
+                    ->requestPickup($order_id, $params)
+                    ->transportation($order_id, $params);
 
             } catch ( Exception $e ) {
 
@@ -232,6 +233,15 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
 
             if (! $serviceData) {
                 throw new Exception(__('Invalid service information!', 'pr-shipping-dhl'));
+            }
+
+            $currency = get_woocommerce_currency();
+
+            if (
+                ! $currency ||
+                $currency !== $this->getAllowedCurrency()
+            ) {
+                throw new \Exception('Invalid shop currency!');
             }
 
             // Check if weight set and is good
@@ -365,6 +375,9 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                 ],
                 'pieces' => [
                     [
+                        "id" => [
+                            "test", "test"
+                        ],
                         'numberOfPieces' => 1,
                         'packageType' => 'transport',
                         'weight' => $params['pr_dhl_weight'],
@@ -377,6 +390,85 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                 'totalWeight' => $params['pr_dhl_weight'],
                 'pickupDate' => $params['pr_dhl_pickup_date']
             ]);
+
+            // Save booking number
+            update_post_meta($order_id, 'dhl_freight_pickup_booking_number', $results->bookingNumber);
+
+            return $this;
+        }
+
+        private function transportation($order_id, $params)
+        {
+            $dhl_obj = PR_DHL()->get_dhl_factory();
+
+            // Shop info
+            $store_address     = get_option( 'woocommerce_store_address' );
+            $store_city        = get_option( 'woocommerce_store_city' );
+            $store_postcode    = get_option( 'woocommerce_store_postcode' );
+            $store_country     = wc_get_base_location()['country'];
+
+            // Access point info
+            $access_point      = get_post_meta($order_id, 'dhl_freight_point', true);
+
+            // Take customer info
+            $args = $this->get_label_args( $order_id );
+
+            $results = $dhl_obj->dhl_transportation_request([
+                'productCode' => 103,
+                'parties' => [
+                    [
+                        'id' => $access_point->id,
+                        'type' => 'AccessPoint',
+                        'name' => $access_point->name,
+                        'address' => [
+                            'street' => $access_point->street,
+                            'cityName' => $access_point->cityName,
+                            'postalCode' => $access_point->postalCode,
+                            'countryCode' => $access_point->countryCode
+                        ]
+                    ],
+                    [
+                        'type' => 'Consignor',
+                        'address' => [
+                            'street' => $store_address,
+                            'cityName' => $store_city,
+                            'postalCode' => $store_postcode,
+                            'countryCode' => $store_country
+                        ],
+                    ],
+                    [
+                        'type' => 'Consignee',
+                        'address' => [
+                            'street' => $args['shipping_address']['address_1'],
+                            'cityName' => $args['shipping_address']['city'],
+                            'postalCode' => $args['shipping_address']['postcode'],
+                            'countryCode' => $args['shipping_address']['country']
+                        ],
+                        'phone' => $args['shipping_address']['phone'],
+                        'email' => $args['shipping_address']['email'],
+                    ]
+                ],
+                'pieces' => [
+                    [
+                        "id" => [
+                            "test", "test"
+                        ],
+                        'numberOfPieces' => 1,
+                        'packageType' => 103,
+                        'weight' => $params['pr_dhl_weight'],
+                        'width' => $params['pr_dhl_package_width'],
+                        'height' => $params['pr_dhl_package_height'],
+                        'length' => $params['pr_dhl_package_length']
+                    ]
+                ],
+                'additionalServices' => $this->mapDhlAdditionalServices($args, $order_id),
+                'totalWeight' => $params['pr_dhl_weight'],
+                'pickupDate' => $params['pr_dhl_pickup_date']
+            ]);
+
+            update_post_meta($order_id, 'dhl_freight_trnasportation_insturctions', $results);
+
+            return $this;
         }
 
         private function mapDhlAdditionalServices($args, $order_id)
@@ -440,6 +532,11 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
             $this->additional_services = collect($order->get_meta('dhl_freight_additional_services', true)->additionalServices)->filter(function ($item) {
                 return in_array($item->type, $this->getAdditionalServicesWhiteList());
             });
+        }
+
+        private function getAllowedCurrency()
+        {
+            return 'SEK';
         }
     }
 
