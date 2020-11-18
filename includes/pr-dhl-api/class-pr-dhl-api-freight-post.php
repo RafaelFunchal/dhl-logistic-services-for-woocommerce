@@ -224,6 +224,17 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
         return $this->api_client->transportation_request($params);
     }
 
+    public function dhl_print_document_request($args) {
+        $default = [
+            'shipment' => [],
+            'options' => []
+        ];
+
+        $params = array_merge($default, $args);
+
+        return $this->api_client->print_documents_request($params);
+    }
+
     /**
      * Retrieves the API URL.
      *

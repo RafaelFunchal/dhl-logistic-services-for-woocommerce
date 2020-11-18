@@ -23,6 +23,8 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
             add_action( 'pr_shipping_dhl_label_created', array( $this, 'change_order_status' ), 10, 1 );
             add_action( 'woocommerce_email_order_details', array( $this, 'add_tracking_info'), 10, 4 );
             add_action( 'woocommerce_order_status_changed', array( $this, 'create_label_on_status_changed' ), 10, 4 );
+
+            add_action( 'parse_query', array( $this, 'process_download_awb_label' ) );
         }
 
         protected function get_default_dhl_product($order_id)
@@ -211,11 +213,16 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                     ->checkRules($order_id, $params)
                     ->validatePickupPoint()
                     ->requestPickup($order_id, $params)
-                    ->transportation($order_id, $params);
+                    ->transportation($order_id, $params)
+                    ->printDocuments($order_id, $params);
+
+                wp_send_json([
+                    'label_url' => $this->generate_download_url('/' . self::DHL_DOWNLOAD_ENDPOINT . '/' . $order_id)
+                ]);
 
             } catch ( Exception $e ) {
 
-                wp_send_json( array( 'error' => $e->getMessage() ) );
+                wp_send_json(['error' => $e->getMessage()]);
             }
 
             wp_die();
@@ -375,9 +382,7 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                 ],
                 'pieces' => [
                     [
-                        "id" => [
-                            "test", "test"
-                        ],
+                        "id" => [],
                         'numberOfPieces' => 1,
                         'packageType' => 'transport',
                         'weight' => $params['pr_dhl_weight'],
@@ -450,9 +455,7 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                 ],
                 'pieces' => [
                     [
-                        "id" => [
-                            "test", "test"
-                        ],
+                        "id" => [],
                         'numberOfPieces' => 1,
                         'packageType' => 103,
                         'weight' => $params['pr_dhl_weight'],
@@ -467,6 +470,83 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
             ]);
 
             update_post_meta($order_id, 'dhl_freight_trnasportation_insturctions', $results);
+
+            return $this;
+        }
+
+        private function printDocuments($order_id, $params)
+        {
+            $dhl_obj = PR_DHL()->get_dhl_factory();
+
+            // Shop info
+            $store_address     = get_option( 'woocommerce_store_address' );
+            $store_city        = get_option( 'woocommerce_store_city' );
+            $store_postcode    = get_option( 'woocommerce_store_postcode' );
+            $store_country     = wc_get_base_location()['country'];
+
+            // Access point info
+            $access_point      = get_post_meta($order_id, 'dhl_freight_point', true);
+
+            // Take customer info
+            $args = $this->get_label_args( $order_id );
+
+            $results = $dhl_obj->dhl_print_document_request([
+                'shipment' => [
+                    'productCode' => 103,
+                    'parties' => [
+                        [
+                            'id' => $access_point->id,
+                            'type' => 'AccessPoint',
+                            'name' => $access_point->name,
+                            'address' => [
+                                'street' => $access_point->street,
+                                'cityName' => $access_point->cityName,
+                                'postalCode' => $access_point->postalCode,
+                                'countryCode' => $access_point->countryCode
+                            ]
+                        ],
+                        [
+                            'type' => 'Consignor',
+                            'address' => [
+                                'street' => $store_address,
+                                'cityName' => $store_city,
+                                'postalCode' => $store_postcode,
+                                'countryCode' => $store_country
+                            ],
+                        ],
+                        [
+                            'type' => 'Consignee',
+                            'address' => [
+                                'street' => $args['shipping_address']['address_1'],
+                                'cityName' => $args['shipping_address']['city'],
+                                'postalCode' => $args['shipping_address']['postcode'],
+                                'countryCode' => $args['shipping_address']['country']
+                            ],
+                            'phone' => $args['shipping_address']['phone'],
+                            'email' => $args['shipping_address']['email'],
+                        ]
+                    ],
+                    'pieces' => [
+                        [
+                            "id" => [],
+                            'numberOfPieces' => 1,
+                            'packageType' => 103,
+                            'weight' => $params['pr_dhl_weight'],
+                            'width' => $params['pr_dhl_package_width'],
+                            'height' => $params['pr_dhl_package_height'],
+                            'length' => $params['pr_dhl_package_length']
+                        ]
+                    ],
+                    'additionalServices' => $this->mapDhlAdditionalServices($args, $order_id),
+                    'totalWeight' => $params['pr_dhl_weight'],
+                    'pickupDate' => $params['pr_dhl_pickup_date'],
+                ],
+                'options' => [
+                    "label" => true,
+                ]
+            ]);
+
+            update_post_meta($order_id, 'dhl_freight_print_document_data', $results);
 
             return $this;
         }
@@ -537,6 +617,21 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
         private function getAllowedCurrency()
         {
             return 'SEK';
+        }
+
+        public function process_download_awb_label() {
+            global $wp_query;
+
+            $dhl_order_id = isset($wp_query->query_vars[ self::DHL_DOWNLOAD_ENDPOINT ] )
+                ? $wp_query->query_vars[ self::DHL_DOWNLOAD_ENDPOINT ]
+                : null;
+
+            $label_info = get_post_meta($dhl_order_id, 'dhl_freight_print_document_data', true);
+
+            header("Content-type:application/pdf");
+            header(sprintf("Content-Disposition:attachment; filename=%s", $label_info[0]->name));
+
+            echo base64_decode($label_info[0]->content);
         }
     }
 
