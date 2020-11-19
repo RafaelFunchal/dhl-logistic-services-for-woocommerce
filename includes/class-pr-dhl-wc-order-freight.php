@@ -24,7 +24,7 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
             add_action( 'woocommerce_email_order_details', array( $this, 'add_tracking_info'), 10, 4 );
             add_action( 'woocommerce_order_status_changed', array( $this, 'create_label_on_status_changed' ), 10, 4 );
 
-            add_action( 'parse_query', array( $this, 'process_download_awb_label' ) );
+            // add_action( 'parse_query', array( $this, 'process_download_awb_label' ) );
         }
 
         protected function get_default_dhl_product($order_id)
