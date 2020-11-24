@@ -64,24 +64,23 @@ class PR_DHL_WC_Order_eCS_US extends PR_DHL_WC_Order {
 					'options'			=> $duties_opt,
 					'custom_attributes'	=> array( $is_disabled => $is_disabled )
 				) );
-
-			// Get saved package description, otherwise generate the text based on settings
-			if( ! empty( $dhl_label_items['pr_dhl_description'] ) ) {
-				$selected_dhl_desc = $dhl_label_items['pr_dhl_description'];
-			} else {
-				$selected_dhl_desc = $this->get_package_description( $order_id );
-			}	
-
-			woocommerce_wp_textarea_input( array(
-				'id'          		=> 'pr_dhl_description',
-				'label'       		=> __( 'Package description for customs (50 characters max): ', 'pr-shipping-dhl' ),
-				'placeholder' 		=> '',
-				'description'		=> '',
-				'value'       		=> $selected_dhl_desc,
-				'custom_attributes'	=> array( $is_disabled => $is_disabled, 'maxlength' => '50' )
-			) );
-
 		}
+	
+		// Get saved package description, otherwise generate the text based on settings
+		if( ! empty( $dhl_label_items['pr_dhl_description'] ) ) {
+			$selected_dhl_desc = $dhl_label_items['pr_dhl_description'];
+		} else {
+			$selected_dhl_desc = $this->get_package_description( $order_id );
+		}	
+
+		woocommerce_wp_textarea_input( array(
+			'id'          		=> 'pr_dhl_description',
+			'label'       		=> __( 'Package description for customs (50 characters max): ', 'pr-shipping-dhl' ),
+			'placeholder' 		=> '',
+			'description'		=> '',
+			'value'       		=> $selected_dhl_desc,
+			'custom_attributes'	=> array( $is_disabled => $is_disabled, 'maxlength' => '50' )
+		) );
 		
 		if( $this->is_cod_payment_method( $order_id ) ) {
 
