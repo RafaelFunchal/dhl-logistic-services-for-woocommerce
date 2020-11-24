@@ -88,7 +88,7 @@ class Client extends API_Client
     {
         $response = $this->post('transportinstructionapi/v1/transportinstruction/sendtransportinstruction', $params);
 
-        if ($response->status === 200) {
+        if ($response->status === 200 && $response->body->status !== 'Error') {
             return $response->body->transportInstruction;
         }
 
@@ -98,7 +98,7 @@ class Client extends API_Client
     public function print_documents_request($params)
     {
         $response = $this->post('printapi/v1/print/printdocuments', $params);
-
+print_r($response);
         if ($response->status === 200) {
             return $response->body->reports;
         }

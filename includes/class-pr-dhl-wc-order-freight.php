@@ -16,6 +16,9 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
 
         private $additional_services = [];
 
+        private $transportation;
+
+
         public function init_hooks(){
 
             parent::init_hooks();
@@ -212,8 +215,8 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                 $this
                     ->checkRules($order_id, $params)
                     ->validatePickupPoint()
-                    ->requestPickup($order_id, $params)
                     ->transportation($order_id, $params)
+                    ->requestPickup($order_id, $params)
                     ->printDocuments($order_id, $params);
 
                 wp_send_json([
@@ -382,7 +385,7 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                 ],
                 'pieces' => [
                     [
-                        "id" => [],
+                        "id" => $this->transportation->pieces[0]->id,
                         'numberOfPieces' => 1,
                         'packageType' => 'transport',
                         'weight' => $params['pr_dhl_weight'],
@@ -391,6 +394,7 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                         'length' => $params['pr_dhl_package_length']
                     ]
                 ],
+                'id' => $this->transportation->id,
                 'additionalServices' => $this->mapDhlAdditionalServices($args, $order_id),
                 'totalWeight' => $params['pr_dhl_weight'],
                 'pickupDate' => $params['pr_dhl_pickup_date']
@@ -469,6 +473,8 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                 'pickupDate' => $params['pr_dhl_pickup_date']
             ]);
 
+            $this->transportation = $results;
+
             update_post_meta($order_id, 'dhl_freight_trnasportation_insturctions', $results);
 
             return $this;
@@ -492,6 +498,7 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
 
             $results = $dhl_obj->dhl_print_document_request([
                 'shipment' => [
+                    'id' => $this->transportation->id,
                     'productCode' => 103,
                     'parties' => [
                         [
@@ -528,7 +535,7 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                     ],
                     'pieces' => [
                         [
-                            "id" => [],
+                            "id" => $this->transportation->pieces[0]->id,
                             'numberOfPieces' => 1,
                             'packageType' => 103,
                             'weight' => $params['pr_dhl_weight'],
@@ -540,6 +547,7 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                     'additionalServices' => $this->mapDhlAdditionalServices($args, $order_id),
                     'totalWeight' => $params['pr_dhl_weight'],
                     'pickupDate' => $params['pr_dhl_pickup_date'],
+                    'routingCode' => $this->transportation->routingCode
                 ],
                 'options' => [
                     "label" => true,
@@ -625,6 +633,10 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
             $dhl_order_id = isset($wp_query->query_vars[ self::DHL_DOWNLOAD_ENDPOINT ] )
                 ? $wp_query->query_vars[ self::DHL_DOWNLOAD_ENDPOINT ]
                 : null;
+
+            if (! $dhl_order_id) {
+                return;
+            }
 
             $label_info = get_post_meta($dhl_order_id, 'dhl_freight_print_document_data', true);
 
