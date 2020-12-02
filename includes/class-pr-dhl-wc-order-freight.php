@@ -387,7 +387,7 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                     [
                         "id" => $this->transportation->pieces[0]->id,
                         'numberOfPieces' => 1,
-                        'packageType' => 'transport',
+                        'packageType' => 'CLL',
                         'weight' => $params['pr_dhl_weight'],
                         'width' => $params['pr_dhl_package_width'],
                         'height' => $params['pr_dhl_package_height'],
@@ -396,6 +396,10 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                 ],
                 'id' => $this->transportation->id,
                 'additionalServices' => $this->mapDhlAdditionalServices($args, $order_id),
+                'productCode' => '103',
+                'payerCode' => [
+                        'code' => '1'
+                    ],
                 'totalWeight' => $params['pr_dhl_weight'],
                 'pickupDate' => $params['pr_dhl_pickup_date']
             ]);
@@ -423,7 +427,10 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
             $args = $this->get_label_args( $order_id );
 
             $results = $dhl_obj->dhl_transportation_request([
-                'productCode' => 103,
+                'productCode' => '103',
+                'payerCode' => [
+                        'code' => '1'
+                    ],
                 'parties' => [
                     [
                         'id' => $access_point->id,
@@ -461,7 +468,7 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                     [
                         "id" => [],
                         'numberOfPieces' => 1,
-                        'packageType' => 103,
+                        'packageType' => 'CLL',
                         'weight' => $params['pr_dhl_weight'],
                         'width' => $params['pr_dhl_package_width'],
                         'height' => $params['pr_dhl_package_height'],
@@ -499,7 +506,10 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
             $results = $dhl_obj->dhl_print_document_request([
                 'shipment' => [
                     'id' => $this->transportation->id,
-                    'productCode' => 103,
+                    'productCode' => '103',
+                    'payerCode' => [
+                        'code' => '1'
+                    ],
                     'parties' => [
                         [
                             'id' => $access_point->id,
@@ -537,7 +547,7 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                         [
                             "id" => $this->transportation->pieces[0]->id,
                             'numberOfPieces' => 1,
-                            'packageType' => 103,
+                            'packageType' => 'CLL',
                             'weight' => $params['pr_dhl_weight'],
                             'width' => $params['pr_dhl_package_width'],
                             'height' => $params['pr_dhl_package_height'],
