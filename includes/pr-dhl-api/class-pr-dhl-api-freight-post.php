@@ -313,4 +313,25 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
 
         return isset( $settings[ $key ] ) ? $settings[ $key ] : $default;
     }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @since [*next-version*]
+     */
+    public function delete_dhl_label( $label_info ) {
+        if ( ! isset( $label_info['label_path'] ) ) {
+            throw new Exception( __( 'DHL Label has no path!', 'pr-shipping-dhl' ) );
+        }
+
+        $label_path = $label_info['label_path'];
+
+        if ( file_exists( $label_path ) ) {
+            $res = unlink( $label_path );
+
+            if ( ! $res ) {
+                throw new Exception( __( 'DHL Label could not be deleted!', 'pr-shipping-dhl' ) );
+            }
+        }
+    }
 }
