@@ -18,16 +18,12 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
 
         private $transportation;
 
-
+        
         public function init_hooks(){
 
             parent::init_hooks();
 
-            add_action( 'pr_shipping_dhl_label_created', array( $this, 'change_order_status' ), 10, 1 );
-            add_action( 'woocommerce_email_order_details', array( $this, 'add_tracking_info'), 10, 4 );
-            add_action( 'woocommerce_order_status_changed', array( $this, 'create_label_on_status_changed' ), 10, 4 );
-
-            // add_action( 'parse_query', array( $this, 'process_download_awb_label' ) );
+            add_filter( 'pr_shipping_dhl_label_args', array( $this, 'checkRules' ), 10, 2 );
         }
 
         protected function get_default_dhl_product($order_id)
@@ -40,13 +36,18 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
         }
 
         public function get_bulk_actions() {
-            return [];
+            $shop_manager_actions = array(
+                'pr_dhl_create_labels'      => __( 'DHL Create Labels', 'pr-shipping-dhl' )
+            );
+
+            return $shop_manager_actions;
         }
 
         public function get_dhl_label_items( $order_id )
         {
+            error_log('get_dhl_label_items');
             $items = parent::get_dhl_label_items($order_id);
-
+            error_log(print_r($items,true));
             $order = wc_get_order($order_id);
 
             if (! $this->additional_services) {
@@ -73,7 +74,7 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                     }
                 }
             }
-
+            error_log(print_r($items,true));
             return $items;
         }
 
@@ -180,28 +181,34 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                 ->add('pr_dhl_pickup_date')
                 ->toArray();
 
+            error_log(print_r($fields,true));
             return $fields;
         }
 
         protected function get_label_args_settings($order_id, $dhl_label_items)
         {
-            return [];
-//            $order = wc_get_order($order_id);
-//
-//            $this->additional_services = $order->get_meta('dhl_freight_additional_services', true);
-//
-//            $meta_box_ids = $this->get_additional_meta_ids();
-//
-//            foreach ($meta_box_ids as $value) {
-//                $api_key = str_replace('pr_dhl_', '', $value);
-//                if ( isset( $dhl_label_items[ $value ] ) ) {
-//                    $args['order_details'][ $api_key ] = $dhl_label_items[ $value ];
-//                }
-//            }
-//
-//            return $args;
-        }
+            // Get services etc.
+            $meta_box_ids = $this->get_additional_meta_ids();
+            
+            foreach ($meta_box_ids as $value) {
+                $api_key = str_replace('pr_dhl_', '', $value);
+                if ( isset( $dhl_label_items[ $value ] ) ) {
+                    $args['order_details'][ $api_key ] = $dhl_label_items[ $value ];
+                }
+            }
 
+            $args['dhl_settings']['account_name'] = $this->shipping_dhl_settings['dhl_client_name'];
+            $args['dhl_settings']['store_address'] = get_option( 'woocommerce_store_address' );
+            $args['dhl_settings']['store_city'] = get_option( 'woocommerce_store_city' );
+            $args['dhl_settings']['store_postcode'] = get_option( 'woocommerce_store_postcode' );
+            $args['dhl_settings']['store_country'] = PR_DHL()->get_base_country();
+            $args['dhl_settings']['account_num'] = $this->shipping_dhl_settings['dhl_client_account']; //'350009';
+            $args['dhl_settings']['api_key'] = $this->shipping_dhl_settings['dhl_client_key'];
+            $args['dhl_settings']['enable_pickup'] = $this->shipping_dhl_settings['dhl_enable_pickup'];
+            
+            return $args;
+        }
+/*
         public function save_meta_box_ajax()
         {
             check_ajax_referer( 'create-dhl-label', 'pr_dhl_label_nonce' );
@@ -240,9 +247,11 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
 
             wp_die();
         }
-
-        private function checkRules($order_id, $params)
+*/
+        public function checkRules($params, $order_id )
         {
+            error_log('checkRules');
+            error_log(print_r($params,true));
             // Check if access point set
             if (! get_post_meta($order_id, 'dhl_freight_point', true)) {
                 throw new Exception(__('Invalid access point!', 'pr-shipping-dhl'));
@@ -265,63 +274,63 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
             }
 
             // Check if weight set and is good
-            if (! isset($params['pr_dhl_weight']) ||
-                ! $params['pr_dhl_weight'] ||
-                $params['pr_dhl_weight'] < $serviceData->piece->actualWeightMin ||
-                $params['pr_dhl_weight'] > $serviceData->piece->actualWeightMax
+            if (! isset($params['order_details']['weight']) ||
+                ! $params['order_details']['weight'] ||
+                $params['order_details']['weight'] < $serviceData->piece->actualWeightMin ||
+                $params['order_details']['weight'] > $serviceData->piece->actualWeightMax
             ) {
                 throw new \Exception('Invalid package weight!');
             }
 
             // Check if length set and is good
-            if (! isset($params['pr_dhl_package_width']) ||
-                ! $params['pr_dhl_package_width'] ||
-                $params['pr_dhl_package_width'] < $serviceData->piece->widthMin ||
-                $params['pr_dhl_package_width'] > $serviceData->piece->widthMax
+            if (! isset($params['order_details']['package_width']) ||
+                ! $params['order_details']['package_width'] ||
+                $params['order_details']['package_width'] < $serviceData->piece->widthMin ||
+                $params['order_details']['package_width'] > $serviceData->piece->widthMax
             ) {
                 throw new \Exception('Invalid package width!');
             }
 
             // Check if length set and is good
-            if (! isset($params['pr_dhl_package_height']) ||
-                ! $params['pr_dhl_package_height'] ||
-                $params['pr_dhl_package_height'] < $serviceData->piece->heightMin ||
-                $params['pr_dhl_package_height'] > $serviceData->piece->heightMax
+            if (! isset($params['order_details']['package_height']) ||
+                ! $params['order_details']['package_height'] ||
+                $params['order_details']['package_height'] < $serviceData->piece->heightMin ||
+                $params['order_details']['package_height'] > $serviceData->piece->heightMax
             ) {
                 throw new \Exception('Invalid package height!');
             }
 
             // Check if length set and is good
-            if (! isset($params['pr_dhl_package_length']) ||
-                ! $params['pr_dhl_package_length'] ||
-                $params['pr_dhl_package_length'] < $serviceData->piece->lengthMin ||
-                $params['pr_dhl_package_length'] > $serviceData->piece->lengthMax
+            if (! isset($params['order_details']['package_length']) ||
+                ! $params['order_details']['package_length'] ||
+                $params['order_details']['package_length'] < $serviceData->piece->lengthMin ||
+                $params['order_details']['package_length'] > $serviceData->piece->lengthMax
             ) {
                 throw new \Exception('Invalid package length!');
             }
 
             // Check insurance
             if (
-                isset($params['pr_dhl_insurance']) &&
-                $params['pr_dhl_insurance'] === 'yes' &&
+                isset($params['order_details']['insurance']) &&
+                $params['order_details']['insurance'] === 'yes' &&
                 (
-                    ! isset($params['pr_dhl_insurance_amount']) ||
-                    $params['pr_dhl_insurance_amount'] > $serviceData->highValueLimit
+                    ! isset($params['order_details']['insurance_amount']) ||
+                    $params['order_details']['insurance_amount'] > $serviceData->highValueLimit
                 )
             ) {
                 throw new \Exception('Invalid insurance amount!');
             }
 
             // Check Pickupdate
-            if (! isset($params['pr_dhl_pickup_date']) ||
-                ! $params['pr_dhl_pickup_date']
+            if (! isset($params['order_details']['pickup_date']) ||
+                ! $params['order_details']['pickup_date']
             ) {
                 throw new \Exception('Invalid pickup date!');
             }
 
-            return $this;
+            return $params;
         }
-
+/*
         private function validatePickupPoint()
         {
             $dhl_obj            = PR_DHL()->get_dhl_factory();
@@ -342,7 +351,7 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
 
             return $this;
         }
-
+*/
         private function requestPickup($order_id, $params)
         {
             $dhl_obj = PR_DHL()->get_dhl_factory();

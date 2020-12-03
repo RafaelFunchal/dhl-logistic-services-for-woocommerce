@@ -62,8 +62,14 @@ class Client extends API_Client
         $this->throwError($response);
     }
 
-    public function validate_postal_code($params)
+    public function validate_postal_code( $item_info )
     {
+        $params = array(
+            'countryCode' => $item_info->settings['store_country'],
+            'city' => $item_info->settings['store_city'],
+            'postalCode' => $item_info->settings['store_postcode']
+        );
+
         $response = $this->post('postalcodeapi/v1/postalcodes/validate', $params);
 
         if ($response->status === 200) {

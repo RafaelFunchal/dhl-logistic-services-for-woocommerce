@@ -6,6 +6,7 @@ use PR\DHL\REST_API\Drivers\Logging_Driver;
 use PR\DHL\REST_API\Drivers\WP_API_Driver;
 use PR\DHL\REST_API\Freight\Auth;
 use PR\DHL\REST_API\Freight\Client;
+use PR\DHL\REST_API\Freight\Item_Info;
 use PR\DHL\REST_API\Interfaces\API_Driver_Interface;
 
 if ( ! defined( 'ABSPATH' ) || class_exists( 'PR_DHL_API_Freight_Post', false ) ) {
@@ -133,6 +134,69 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
     protected function create_api_auth() {
         return new Auth(
             $this->get_client_key()
+        );
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @since [*next-version*]
+     */
+    public function get_dhl_label( $args ) {
+
+        $order_id = isset( $args[ 'order_details' ][ 'order_id' ] )
+            ? $args[ 'order_details' ][ 'order_id' ]
+            : null;
+
+        $uom                = get_option( 'woocommerce_weight_unit' );
+        // $label_format       = $args['dhl_settings']['label_format'];
+        $is_cross_border    = PR_DHL()->is_crossborder_shipment( $args['shipping_address']['country'] );
+        try {
+            $item_info = new Item_Info( $args, $uom, $is_cross_border );
+        } catch (Exception $e) {
+            throw $e;
+        }
+
+        $transport_response = $this->api_client->transportation_request( $item_info );
+
+        if ( $this->get_setting('dhl_enable_pickup') == 'yes') {
+
+            if( $this->api_client->validate_postal_code( $item_info ) ) {
+                $this->api_client->pickup_request( $item_info );
+            } else {
+                throw new \Exception(__( 'Postcode is not valid for pickup', 'pr-shipping-dhl' ) );
+            }
+        }
+
+        $label_response = $this->api_client->print_documents_request( $item_info );
+
+        // error_log(print_r($label_response,true));
+        if ( !empty( $label_response[0]->valid ) ) {
+            // $label_pdf_data  = base64_decode( $label_info->content );
+            // $shipment_id        = $label_info->shipmentID;
+            $this->save_dhl_label_file( 'item', $label_response[0]->name, base64_decode( $label_response[0]->content ) );
+
+            return $this->get_dhl_label_file_info( 'item', $label_response[0]->name )->path;
+        }
+
+        /*
+        $label_url = $this->validatePickupPoint()
+                    ->transportation($order_id, $params)
+                    ->requestPickup($order_id, $params)
+                    ->printDocuments($order_id, $params);
+        // Create the shipping label
+
+        $label_info         = $this->api_client->create_label( $item_info );
+
+        $label_pdf_data     = ( $label_format == 'ZPL' )? $label_info->content : base64_decode( $label_info->content );
+        $shipment_id        = $label_info->shipmentID;
+        $this->save_dhl_label_file( 'item', $shipment_id, $label_pdf_data );
+        */
+        return array(
+            'label_path'            => $this->get_dhl_label_file_info( 'item', $shipment_id )->path,
+            'shipment_id'           => $shipment_id,
+            'tracking_number'       => $shipment_id,
+            'tracking_status'       => '',
         );
     }
 
