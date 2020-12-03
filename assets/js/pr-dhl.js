@@ -118,30 +118,28 @@ jQuery( function( $ ) {
 			};
 			
 			// var data = new Array();
-			$(function(){ 
-				$('#shipment-dhl-label-form').each(function(i, div) {
+			$('#shipment-dhl-label-form').each(function(i, div) {
 
-				    $(div).find('input').each(function(j, element){
-				        if( $(element).attr('type') == 'checkbox' ) {
-				        	if ( $(element).prop('checked') ) {
-					        	data[ $(element).attr('name') ] = 'yes';
-				        	} else {
-					        	data[ $(element).attr('name') ] = 'no';
-				        	}
-				        } else {
-				        	data[ $(element).attr('name') ] = $(element).val();
-				        }
-				    });
-
-				    $(div).find('select').each(function(j, element){
+			    $(div).find('input').each(function(j, element){
+			        if( $(element).attr('type') == 'checkbox' ) {
+			        	if ( $(element).prop('checked') ) {
+				        	data[ $(element).attr('name') ] = 'yes';
+			        	} else {
+				        	data[ $(element).attr('name') ] = 'no';
+			        	}
+			        } else {
 			        	data[ $(element).attr('name') ] = $(element).val();
-				    });
+			        }
+			    });
 
-				    $(div).find('textarea').each(function(j, element){
-			        	data[ $(element).attr('name') ] = $(element).val();
-				    });
-		    	});
-		    });
+			    $(div).find('select').each(function(j, element){
+		        	data[ $(element).attr('name') ] = $(element).val();
+			    });
+
+			    $(div).find('textarea').each(function(j, element){
+		        	data[ $(element).attr('name') ] = $(element).val();
+			    });
+	    	});
 			
 			$.post( woocommerce_admin_meta_boxes.ajax_url, data, function( response ) {
 				$( '#shipment-dhl-label-form' ).unblock();

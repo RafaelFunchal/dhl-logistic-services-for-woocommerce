@@ -232,7 +232,44 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
 
         $params = array_merge($default, $args);
 
-        return $this->api_client->print_documents_request($params);
+        $label_response = $this->api_client->print_documents_request($params);
+        // error_log(print_r($label_response,true));
+        if ( !empty( $label_response[0]->valid ) ) {
+            // $label_pdf_data  = base64_decode( $label_info->content );
+            // $shipment_id        = $label_info->shipmentID;
+            $this->save_dhl_label_file( 'item', $label_response[0]->name, base64_decode( $label_response[0]->content ) );
+
+            return $this->get_dhl_label_file_info( 'item', $label_response[0]->name )->path;
+        }
+    }
+
+    /**
+     * Retrieves the filename for DHL item label files.
+     *
+     * @since [*next-version*]
+     *
+     * @param string $barcode The DHL item barcode.
+     * @param string $format The file format.
+     *
+     * @return string
+     */
+    public function get_dhl_item_label_file_name( $barcode, $format = 'pdf' ) {
+        return sprintf('dhl_%s', $barcode);
+    }
+
+    /**
+     * Retrieves the file info for any DHL label file, based on type.
+     *
+     * @since [*next-version*]
+     *
+     * @param string $type The label type: "item" or "order".
+     * @param string $key The key: barcode for type "item", and order ID for type "order".
+     *
+     * @return object An object containing the file "path" and "url" strings.
+     */
+    public function get_dhl_label_file_info( $type, $key ) {      
+        // Return info for "item" type
+        return $this->get_dhl_item_label_file_info( $key, 'pdf' );
     }
 
     /**

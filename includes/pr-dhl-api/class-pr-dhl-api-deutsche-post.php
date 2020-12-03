@@ -373,20 +373,6 @@ class PR_DHL_API_Deutsche_Post extends PR_DHL_API {
 	}
 
 	/**
-	 * Retrieves the filename for DHL item label files.
-	 *
-	 * @since [*next-version*]
-	 *
-	 * @param string $barcode The DHL item barcode.
-	 * @param string $format The file format.
-	 *
-	 * @return string
-	 */
-	public function get_dhl_item_label_file_name( $barcode, $format = 'pdf' ) {
-		return sprintf('dhl-label-%s.%s', $barcode, $format);
-	}
-
-	/**
 	 * Retrieves the filename for DHL AWB label files.
 	 *
 	 * @since [*next-version*]
@@ -412,25 +398,6 @@ class PR_DHL_API_Deutsche_Post extends PR_DHL_API {
 	 */
 	public function get_dhl_order_label_file_name( $order_id, $format = 'pdf' ) {
 		return sprintf('dhl-waybill-order-%s.%s', $order_id, $format);
-	}
-
-	/**
-	 * Retrieves the file info for a DHL item label file.
-	 *
-	 * @since [*next-version*]
-	 *
-	 * @param string $barcode The DHL item barcode.
-	 * @param string $format The file format.
-	 *
-	 * @return object An object containing the file "path" and "url" strings.
-	 */
-	public function get_dhl_item_label_file_info( $barcode, $format = 'pdf' ) {
-		$file_name = $this->get_dhl_item_label_file_name($barcode, $format);
-
-		return (object) array(
-			'path' => PR_DHL()->get_dhl_label_folder_dir() . $file_name,
-			'url' => PR_DHL()->get_dhl_label_folder_url() . $file_name,
-		);
 	}
 
 	/**
@@ -494,65 +461,6 @@ class PR_DHL_API_Deutsche_Post extends PR_DHL_API {
 
 		// Return info for "item" type
 		return $this->get_dhl_item_label_file_info( $key );
-	}
-
-	/**
-	 * Saves an item label file.
-	 *
-	 * @since [*next-version*]
-	 *
-	 * @param string $type The label type: "item", "awb" or "order".
-	 * @param string $key The key: barcode for type "item", AWB for type "awb" and order ID for type "order".
-	 * @param string $data The label file data.
-	 *
-	 * @return object The info for the saved label file, containing the "path" and "url".
-	 *
-	 * @throws Exception If failed to save the label file.
-	 */
-	public function save_dhl_label_file( $type, $key, $data ) {
-		// Get the file info based on type
-		$file_info = $this->get_dhl_label_file_info( $type, $key );
-
-		if ( validate_file( $file_info->path ) > 0 ) {
-			throw new Exception( __( 'Invalid file path!', 'pr-shipping-dhl' ) );
-		}
-
-		$file_ret = file_put_contents( $file_info->path, $data );
-
-		if ( empty( $file_ret ) ) {
-			throw new Exception( __( 'DHL label file cannot be saved!', 'pr-shipping-dhl' ) );
-		}
-
-		return $file_info;
-	}
-
-	/**
-	 * Deletes an AWB label file.
-	 *
-	 * @since [*next-version*]
-	 *
-	 * @param string $type The label type: "item", "awb" or "order".
-	 * @param string $key The key: barcode for type "item", AWB for type "awb" and order ID for type "order".
-	 *
-	 * @throws Exception If the file could not be deleted.
-	 */
-	public function delete_dhl_label_file( $type, $key )
-	{
-		// Get the file info based on type
-		$file_info = $this->get_dhl_label_file_info( $type, $key );
-
-		// Do nothing if file does not exist
-		if ( ! file_exists( $file_info->path ) ) {
-			return;
-		}
-
-		// Attempt to delete the file
-		$res = unlink( $file_info->path );
-
-		// Throw error if the file could not be deleted
-		if (!$res) {
-			throw new Exception(__('DHL AWB Label could not be deleted!', 'pr-shipping-dhl'));
-		}
 	}
 
 	/**

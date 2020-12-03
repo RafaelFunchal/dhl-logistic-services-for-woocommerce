@@ -212,16 +212,26 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
 
             try {
 
-                $this
+                $label_url = $this
                     ->checkRules($order_id, $params)
                     ->validatePickupPoint()
                     ->transportation($order_id, $params)
                     ->requestPickup($order_id, $params)
                     ->printDocuments($order_id, $params);
 
-                wp_send_json([
-                    'label_url' => $this->generate_download_url('/' . self::DHL_DOWNLOAD_ENDPOINT . '/' . $order_id)
-                ]);
+                error_log($label_url);
+                wp_send_json( array( 
+                'download_msg' => __('Your DHL label is ready to download, click the "Download Label" button above"', 'pr-shipping-dhl'),
+                'button_txt' => __( 'Download Label', 'pr-shipping-dhl' ),
+                'label_url' => $label_url,
+                'tracking_note'   => 'tracking note',
+                'tracking_note_type' => 'tracking type',
+                ) );
+
+                // wp_send_json([
+                    // 'label_url' => $label_url,
+
+                // ]);
 
             } catch ( Exception $e ) {
 
@@ -564,9 +574,11 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                 ]
             ]);
 
+            // error_log(print_r($results,true));
+
             update_post_meta($order_id, 'dhl_freight_print_document_data', $results);
 
-            return $this;
+            return $results;
         }
 
         private function mapDhlAdditionalServices($args, $order_id)
