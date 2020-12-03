@@ -56,6 +56,8 @@ class PR_DHL_WC_Method_Freight_Post extends WC_Shipping_Method {
      */
     public function init_form_fields() {
 
+        $weight_units = get_option( 'woocommerce_weight_unit' );
+        
         $log_path = PR_DHL()->get_log_url();
 
         $this->form_fields = array(
@@ -67,6 +69,16 @@ class PR_DHL_WC_Method_Freight_Post extends WC_Shipping_Method {
                     'pr-shipping-dhl'
                 ),
                 'class'       => '',
+            ),
+            'dhl_client_name'                => array(
+                'title'       => __( 'Client Name', 'pr-shipping-dhl' ),
+                'type'        => 'text',
+                'default'     => '',
+            ),
+            'dhl_client_account'  => array(
+                'title'       => __( 'Client Account', 'pr-shipping-dhl' ),
+                'type'        => 'text',
+                'default'     => '',
             ),
             'dhl_client_key'                => array(
                 'title'       => __( 'Client Key', 'pr-shipping-dhl' ),
@@ -98,6 +110,66 @@ class PR_DHL_WC_Method_Freight_Post extends WC_Shipping_Method {
                     '</a>'
                 ),
             ),
+            'dhl_pickup_dist'  => array(
+                'title'       => __( 'Shipping', 'pr-shipping-dhl' ),
+                'type'        => 'title',
+                'description' => __( 'Please configure your shipping parameters underneath.', 'pr-shipping-dhl' ),
+                'class'       => '',
+            ),
+            'dhl_enable_pickup' => array(
+                'title'       => __( 'Enable Pickup', 'pr-shipping-dhl' ),
+                'type'        => 'checkbox',
+                'description' => __(
+                    'Enable pickup by DHL',
+                    'pr-shipping-dhl'
+                ),
+                'desc_tip'    => true,
+                'default'     => 'yes',
+            ),
+            'dhl_add_weight_type'   => array(
+                'title'       => __( 'Additional Weight Type', 'pr-shipping-dhl' ),
+                'type'        => 'select',
+                'description' => __(
+                    'Select whether to add an absolute weight amount or percentage amount to the total product weight.',
+                    'pr-shipping-dhl'
+                ),
+                'desc_tip'    => true,
+                'options'     => array( 'absolute' => 'Absolute', 'percentage' => 'Percentage' ),
+                'class'       => 'wc-enhanced-select',
+            ),
+            'dhl_add_weight'        => array(
+                'title'       => sprintf( __( 'Additional Weight (%s or %%)', 'pr-shipping-dhl' ), $weight_units ),
+                'type'        => 'text',
+                'description' => __(
+                    'Add extra weight in addition to the products.  Either an absolute amount or percentage (e.g. 10 for 10%).',
+                    'pr-shipping-dhl'
+                ),
+                'desc_tip'    => true,
+                'default'     => '',
+                'placeholder' => '',
+                'class'       => 'wc_input_decimal',
+            ),
+            'dhl_tracking_note'     => array(
+                'title'       => __( 'Tracking Note', 'pr-shipping-dhl' ),
+                'type'        => 'checkbox',
+                'label'       => __( 'Make Private', 'pr-shipping-dhl' ),
+                'default'     => 'no',
+                'description' => __(
+                    'Please, tick here to not send an email to the customer when the tracking number is added to the order.',
+                    'pr-shipping-dhl'
+                ),
+                'desc_tip'    => true,
+            ),
+            'dhl_tracking_note_txt' => array(
+                'title'       => __( 'Tracking Note', 'pr-shipping-dhl' ),
+                'type'        => 'textarea',
+                'description' => __(
+                    'Set the custom text when adding the tracking number to the order notes. {tracking-link} is where the tracking number will be set.',
+                    'pr-shipping-dhl'
+                ),
+                'desc_tip'    => false,
+                'default'     => __( 'Deutsche Post Tracking Number: {tracking-link}', 'pr-shipping-dhl' ),
+            ),
             'dhl_service_points'                    => array(
                 'title'       => __( 'Service Points Settings', 'pr-shipping-dhl' ),
                 'type'        => 'title',
@@ -116,7 +188,7 @@ class PR_DHL_WC_Method_Freight_Post extends WC_Shipping_Method {
                 'type'              => 'text',
                 'description'       => sprintf( __( 'The Google Maps API Key is necassary to display the DHL Locations on a google map.<br/>Get a free Google Maps API key %shere%s.', 'pr-shipping-dhl' ), '<a href="https://developers.google.com/maps/documentation/javascript/get-api-key" target = "_blank">', '</a>' ),
                 'desc_tip'          => false,
-                'class'				=> ''
+                'class'             => ''
             ),
         );
     }
