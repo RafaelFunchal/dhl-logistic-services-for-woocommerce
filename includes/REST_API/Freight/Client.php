@@ -62,38 +62,17 @@ class Client extends API_Client
         $this->throwError($response);
     }
 
-    public function validate_postal_code( $item_info )
+    public function transportation_request( $item_info )
     {
-        $params = array(
-            'countryCode' => $item_info->settings['store_country'],
-            'city' => $item_info->settings['store_city'],
-            'postalCode' => $item_info->settings['store_postcode']
+        $params = array_merge(
+            $this->get_parties_request( $item_info ),
+            $this->get_pieces_request( $item_info ),
+            $this->get_services_request( $item_info )
         );
 
-        $response = $this->post('postalcodeapi/v1/postalcodes/validate', $params);
-
-        if ($response->status === 200) {
-            return $response->body;
-        }
-
-        $this->throwError($response);
-    }
-
-    public function pickup_request($params)
-    {
-        $response = $this->post('pickuprequestapi/v1/pickuprequest/pickuprequest', $params);
-
-        if ($response->status === 200) {
-            return $response->body;
-        }
-
-        $this->throwError($response);
-    }
-
-    public function transportation_request($params)
-    {
+        error_log(print_r($params, true));
         $response = $this->post('transportinstructionapi/v1/transportinstruction/sendtransportinstruction', $params);
-
+        error_log(print_r($response,true));
         if ($response->status === 200 && $response->body->status !== 'Error') {
             return $response->body->transportInstruction;
         }
@@ -101,14 +80,157 @@ class Client extends API_Client
         throw new \Exception($response->body->validationErrors[0]->message);
     }
 
-    public function print_documents_request($params)
+    public function validate_postal_code( $item_info )
     {
+        $params = array(
+            'countryCode' => $item_info->shipper['country'],
+            'city' => $item_info->shipper['city'],
+            'postalCode' => $item_info->shipper['postcode']
+        );
+
+        $response = $this->post('postalcodeapi/v1/postalcodes/validate', $params);
+        if ($response->status === 200) {
+            return $response->body;
+        }
+
+        $this->throwError($response);
+    }
+
+    public function pickup_request( $transport_response )
+    {
+        $response = $this->post('pickuprequestapi/v1/pickuprequest/pickuprequest', $transport_response);
+     
+        if ($response->status === 200) {
+            return $response->body;
+        }
+
+        $this->throwError($response);
+    }
+    
+    public function print_documents_request( $transport_response)
+    {
+        $params = array(
+                    'shipment' => $transport_response,
+                    'options' => [
+                            'label' => true,
+                            ]
+                    );
+
+        // error_log(print_r($params,true));
         $response = $this->post('printapi/v1/print/printdocuments', $params);
-// print_r($response);
+        // error_log(print_r($response,true));
         if ($response->status === 200) {
             return $response->body->reports;
         }
 
         $this->throwError($response);
+    }
+
+    protected function get_parties_request( $item_info ) {
+
+        $parties = [
+            'parties' => [
+                [
+                    'id' => $item_info->access_point['id'],
+                    'type' => 'AccessPoint',
+                    'name' => $item_info->access_point['name'],
+                    'address' => [
+                        'street' => $item_info->access_point['street'],
+                        'cityName' => $item_info->access_point['city'],
+                        'postalCode' => $item_info->access_point['postcode'],
+                        'countryCode' => $item_info->access_point['country']
+                    ]
+                ],
+                [
+                    'id' => $item_info->shipper['id'],
+                    'type' => 'Consignor',
+                    'name' => $item_info->shipper['name'],
+                    'address' => [
+                        'street' => $item_info->shipper['street'],
+                        'cityName' => $item_info->shipper['city'],
+                        'postalCode' => $item_info->shipper['postcode'],
+                        'countryCode' => $item_info->shipper['country']
+                    ],
+                ],
+                [
+                    'type' => 'Consignee',
+                    'address' => [
+                        'street' => $item_info->recipient['address_1'],
+                        'cityName' => $item_info->recipient['city'],
+                        'postalCode' => $item_info->recipient['postcode'],
+                        'countryCode' => $item_info->recipient['country']
+                    ],
+                    'phone' => $item_info->recipient['phone'],
+                    'email' => $item_info->recipient['email'],
+                ]
+            ]
+        ];
+
+        return $parties;
+    }
+
+    protected function get_pieces_request( $item_info ) {
+
+        $pieces = [
+            'productCode' => '103',
+            'payerCode' => [
+                    'code' => '1'
+                ],
+            'totalWeight' => $item_info->shipment['weight'],
+            'pickupDate' => $item_info->shipment['pickup_date'],
+            'pieces' => [
+                [
+                    // "id" => $this->transportation->pieces[0]->id,
+                    'id' => [],
+                    'numberOfPieces' => 1,
+                    'packageType' => 'CLL',
+                    'weight' => $item_info->shipment['weight'],
+                    'width' => $item_info->shipment['width'],
+                    'height' => $item_info->shipment['height'],
+                    'length' => $item_info->shipment['length']
+                ]
+            ]
+            
+        ];
+
+        return $pieces;
+    }
+
+    protected function get_services_request( $item_info )
+    {
+        $results = [];
+
+        $map = [
+            //'notification' => 'pr_dhl_notificationByLetter',
+            'insurance' => 'insurance_amount',
+            'cashOnDelivery' => 'cashOnDelivery',
+            'dangerousGoodsLimitedQuantity' => 'dangerousGoodsLimitedQuantity',
+        ];
+
+        foreach ($map as $apiKey => $wpKey) {
+
+            switch ($apiKey) {
+                case 'cashOnDelivery':
+                case 'insurance':
+
+                    if (isset($item_info->shipment[$wpKey]) && $item_info->shipment[$wpKey] === 'yes') {
+                        $results[$apiKey] = [
+                            'value' => $item_info->shipment['insurance_amount'],
+                            'currency' => $item_info->shipment['currency'],
+                        ];
+                    }
+
+                    break;
+
+                case 'dangerousGoodsLimitedQuantity':
+
+                    $results[$apiKey] = isset($item_info->shipment[$wpKey]) && $item_info->shipment[$wpKey] === 'yes';
+
+                    break;
+            }
+
+        }
+
+        return array( 'additionalServices' => $results );
     }
 }

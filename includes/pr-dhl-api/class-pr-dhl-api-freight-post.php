@@ -158,18 +158,33 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
         }
 
         $transport_response = $this->api_client->transportation_request( $item_info );
+        error_log(print_r($transport_response,true));
 
+        $pickup_reponse = '';
         if ( $this->get_setting('dhl_enable_pickup') == 'yes') {
 
             if( $this->api_client->validate_postal_code( $item_info ) ) {
-                $this->api_client->pickup_request( $item_info );
+                $pickup_reponse = $this->api_client->pickup_request( $transport_response );
+                // error_log(print_r($pickup_reponse,true));
+
             } else {
                 throw new \Exception(__( 'Postcode is not valid for pickup', 'pr-shipping-dhl' ) );
             }
         }
 
-        $label_response = $this->api_client->print_documents_request( $item_info );
+        $label_response = $this->api_client->print_documents_request( $transport_response );
+        // error_log(print_r($label_response,true));
+        $label_path = $this->get_label_path( $label_response );
 
+        return array(
+            'label_path'            => $label_path,
+            'tracking_number'       => $transport_response->id,
+            'routing_code'          => $transport_response->routingCode,
+            'pickup_response'       => $pickup_reponse
+        );
+    }
+
+    protected function get_label_path( $label_response ) {
         // error_log(print_r($label_response,true));
         if ( !empty( $label_response[0]->valid ) ) {
             // $label_pdf_data  = base64_decode( $label_info->content );
@@ -179,25 +194,7 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
             return $this->get_dhl_label_file_info( 'item', $label_response[0]->name )->path;
         }
 
-        /*
-        $label_url = $this->validatePickupPoint()
-                    ->transportation($order_id, $params)
-                    ->requestPickup($order_id, $params)
-                    ->printDocuments($order_id, $params);
-        // Create the shipping label
-
-        $label_info         = $this->api_client->create_label( $item_info );
-
-        $label_pdf_data     = ( $label_format == 'ZPL' )? $label_info->content : base64_decode( $label_info->content );
-        $shipment_id        = $label_info->shipmentID;
-        $this->save_dhl_label_file( 'item', $shipment_id, $label_pdf_data );
-        */
-        return array(
-            'label_path'            => $this->get_dhl_label_file_info( 'item', $shipment_id )->path,
-            'shipment_id'           => $shipment_id,
-            'tracking_number'       => $shipment_id,
-            'tracking_status'       => '',
-        );
+        throw new \Exception(__( 'No label was created.', 'pr-shipping-dhl' ) );
     }
 
     /**

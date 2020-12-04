@@ -77,7 +77,6 @@ class Item_Info {
 
 		$this->shipment = Args_Parser::parse_args( $shipping_info, $this->get_shipment_info_schema() );
 		$this->recipient = Args_Parser::parse_args( $recipient_info, $this->get_recipient_info_schema() );
-		$this->contents = array();
 
 		$this->contents = array();
 		foreach ( $items_info as $item_info ) {

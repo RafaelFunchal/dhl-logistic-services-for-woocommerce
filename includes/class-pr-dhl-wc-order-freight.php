@@ -45,9 +45,9 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
 
         public function get_dhl_label_items( $order_id )
         {
-            error_log('get_dhl_label_items');
+            // error_log('get_dhl_label_items');
             $items = parent::get_dhl_label_items($order_id);
-            error_log(print_r($items,true));
+            // error_log(print_r($items,true));
             $order = wc_get_order($order_id);
 
             if (! $this->additional_services) {
@@ -74,7 +74,7 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                     }
                 }
             }
-            error_log(print_r($items,true));
+            // error_log(print_r($items,true));
             return $items;
         }
 
@@ -181,7 +181,7 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                 ->add('pr_dhl_pickup_date')
                 ->toArray();
 
-            error_log(print_r($fields,true));
+            // error_log(print_r($fields,true));
             return $fields;
         }
 
@@ -196,6 +196,9 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                     $args['order_details'][ $api_key ] = $dhl_label_items[ $value ];
                 }
             }
+
+            // Cast access point info to array to be used in Item_Info accordingly
+            $args['access_point'] = (array) get_post_meta($order_id, 'dhl_freight_point', true);
 
             $args['dhl_settings']['account_name'] = $this->shipping_dhl_settings['dhl_client_name'];
             $args['dhl_settings']['store_address'] = get_option( 'woocommerce_store_address' );
@@ -250,8 +253,8 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
 */
         public function checkRules($params, $order_id )
         {
-            error_log('checkRules');
-            error_log(print_r($params,true));
+            // error_log('checkRules');
+            // error_log(print_r($params,true));
             // Check if access point set
             if (! get_post_meta($order_id, 'dhl_freight_point', true)) {
                 throw new Exception(__('Invalid access point!', 'pr-shipping-dhl'));

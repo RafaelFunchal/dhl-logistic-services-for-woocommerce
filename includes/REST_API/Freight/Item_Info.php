@@ -26,6 +26,14 @@ class Item_Info {
 	 *
 	 * @var array
 	 */
+	public $access_point;
+	/**
+	 * The array of order recipient information.
+	 *
+	 * @since [*next-version*]
+	 *
+	 * @var array
+	 */
 	public $recipient;
 	/**
 	 * The array of content item information sub-arrays.
@@ -71,13 +79,15 @@ class Item_Info {
 	 */
 	protected function parse_args( $args ) {
 		$settings = $args[ 'dhl_settings' ];
-		$recipient_info = $args[ 'shipping_address' ] + $settings;
-		$shipping_info = $args[ 'order_details' ] + $settings;
+		$recipient_info = $args[ 'shipping_address' ];
+		$access_point = $args[ 'access_point' ];
+		$shipping_info = $args[ 'order_details' ];
 		$items_info = $args['items'];
 
 		$this->shipment = Args_Parser::parse_args( $shipping_info, $this->get_shipment_info_schema() );
+		$this->access_point = Args_Parser::parse_args( $access_point, $this->get_access_point_info_schema() );
+		$this->shipper = Args_Parser::parse_args( $settings, $this->get_shipper_info_schema() );
 		$this->recipient = Args_Parser::parse_args( $recipient_info, $this->get_recipient_info_schema() );
-		$this->contents = array();
 
 		$this->contents = array();
 		foreach ( $items_info as $item_info ) {
@@ -108,16 +118,27 @@ class Item_Info {
 					if ( ! is_numeric( $weight ) ) {
 						throw new Exception( __( 'The order "Weight" must be a number', 'pr-shipping-dhl' ) );
 					}
-				},
-				'sanitize' => function ( $weight ) use ($self) {
-
-					$weight = $self->maybe_convert_to_grams( $weight, $self->weightUom );
-
-					return $weight;
 				}
+			),
+			'package_width'          => array(
+				'rename' => 'width',
+				'error' => __( 'Package width is empty!', 'pr-shipping-dhl' ),
+			),
+			'package_length'          => array(
+				'rename' => 'length',
+				'error' => __( 'Package length is empty!', 'pr-shipping-dhl' ),
+			),
+			'package_height'          => array(
+				'rename' => 'height',
+				'error' => __( 'Packages height is empty!', 'pr-shipping-dhl' ),
 			),
 			'currency'          => array(
 				'error' => __( 'Shop "Currency" is empty!', 'pr-shipping-dhl' ),
+				'validate' => function( $value ) {
+					if ( $value != 'SEK' ) {
+						throw new Exception( __( 'The order "currency" must be "SEK"', 'pr-shipping-dhl' ) );
+					}
+				},
 			),
 			'total_value'       => array(
 				'rename' => 'value',
@@ -132,6 +153,9 @@ class Item_Info {
 					return $self->float_round_sanitization( $value, 2 );
 				}
 			),
+			'pickup_date' => array(
+
+			)
 		);
 	}
 
@@ -184,6 +208,85 @@ class Item_Info {
 			),
 			'country'   => array(
 				'error' => __( 'Shipping "Country" is empty!', 'pr-shipping-dhl' ),
+			),
+		);
+	}
+
+	/**
+	 * Retrieves the args scheme to use with {@link Args_Parser} for parsing order recipient info.
+	 *
+	 * @since [*next-version*]
+	 *
+	 * @return array
+	 */
+	protected function get_access_point_info_schema() {
+
+		// Closures in PHP 5.3 do not inherit class context
+		// So we need to copy $this into a lexical variable and pass it to closures manually
+		$self = $this;
+		
+		return array(
+			'id'   => array(
+				'error' => __( 'Access point "id" is empty!', 'pr-shipping-dhl' ),
+			),	
+			'name'      => array(
+				'error' => __( 'Access point "name" is empty!', 'pr-shipping-dhl' ),
+			),
+			'street' => array(
+				'error' => __( 'Access point "street" is empty!', 'pr-shipping-dhl' ),
+			),
+			'cityName'      => array(
+				'rename' => 'city',
+				'error' => __( 'Access point "city" is empty!', 'pr-shipping-dhl' ),
+			),
+			'postalCode'  => array(
+				'rename' => 'postcode',
+				'error' => __( 'Access point "postcode" is empty!', 'pr-shipping-dhl' ),
+			),
+			'countryCode'   => array(
+				'rename' => 'country',
+				'error' => __( 'Access point "country" is empty!', 'pr-shipping-dhl' ),
+			),
+		);
+	}
+
+	/**
+	 * Retrieves the args scheme to use with {@link Args_Parser} for parsing order recipient info.
+	 *
+	 * @since [*next-version*]
+	 *
+	 * @return array
+	 */
+	protected function get_shipper_info_schema() {
+
+		// Closures in PHP 5.3 do not inherit class context
+		// So we need to copy $this into a lexical variable and pass it to closures manually
+		$self = $this;
+		
+		return array(
+			'account_num'   => array(
+				'rename' => 'id',
+				'error' => __( 'Account number is empty!', 'pr-shipping-dhl' ),
+			),	
+			'account_name'      => array(
+				'rename' => 'name',
+				'error' => __( 'Account name is empty!', 'pr-shipping-dhl' ),
+			),
+			'store_address' => array(
+				'rename' => 'street',
+				'error' => __( 'Store address is empty!', 'pr-shipping-dhl' ),
+			),
+			'store_city'      => array(
+				'rename' => 'city',
+				'error' => __( 'Store city is empty!', 'pr-shipping-dhl' ),
+			),
+			'store_postcode'  => array(
+				'rename' => 'postcode',
+				'error' => __( 'Store postcode is empty!', 'pr-shipping-dhl' ),
+			),
+			'store_country'   => array(
+				'rename' => 'country',
+				'error' => __( 'Store country is empty!', 'pr-shipping-dhl' ),
 			),
 		);
 	}
@@ -247,14 +350,7 @@ class Item_Info {
 				'default' => 1,
 			),
 			'item_weight'      => array(
-				'rename' => 'weight',
-				'default' => 1,
-				'sanitize' => function ( $weight ) use ($self) {
-
-					$weight = $self->maybe_convert_to_grams( $weight, $self->weightUom );
-
-					return $weight;
-				}
+				'rename' => 'weight'
 			),
 		);
 	}
