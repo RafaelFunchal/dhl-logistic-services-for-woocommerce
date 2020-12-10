@@ -155,7 +155,37 @@ class Item_Info {
 			),
 			'pickup_date' => array(
 
-			)
+			),
+			'insurance_amount' => array(
+				'default' => 0,
+				'validate' => function( $value, $args ) {
+                    if( isset( $args['insurance'] ) && $args['insurance'] == 'yes' && empty( $value ) ) {
+                        throw new Exception( __( 'The "Insurance Value" cannot be empty', 'pr-shipping-dhl' ) );
+                    }
+                },
+			),
+			'dangerousGoods' => array(
+				'default' => false,
+				'sanitize' => function( $value ) use ($self) {
+
+					if( !empty( $value ) && $value == 'yes' ) {
+                        return true;
+                    } else {
+                    	return false;
+                    }
+				}
+			),
+			'greenFreight' => array(
+				'default' => false,
+				'sanitize' => function( $value ) use ($self) {
+
+					if( !empty( $value ) && $value == 'yes' ) {
+                        return true;
+                    } else {
+                    	return false;
+                    }
+				}
+			),
 		);
 	}
 

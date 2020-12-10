@@ -168,7 +168,7 @@ class PR_DHL_WC_Method_Freight_Post extends WC_Shipping_Method {
                     'pr-shipping-dhl'
                 ),
                 'desc_tip'    => false,
-                'default'     => __( 'Deutsche Post Tracking Number: {tracking-link}', 'pr-shipping-dhl' ),
+                'default'     => __( 'DHL Parcel Sweden Tracking Number: {tracking-link}.', 'pr-shipping-dhl' ),
             ),
             'dhl_service_points'                    => array(
                 'title'       => __( 'Service Points Settings', 'pr-shipping-dhl' ),

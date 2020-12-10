@@ -8,7 +8,9 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
 
     class PR_DHL_WC_Order_Freight extends PR_DHL_WC_Order {
 
-        protected $carrier = 'DHL Freight';
+        protected $carrier = 'DHL Freight Sweden';
+
+        protected $service = 'DHL Freight Sweden';
 
         private $additional_services_whitelist = [
             'greenFreight', 'insurance', 'dangerousGoodsLimitedQuantity'
@@ -332,6 +334,24 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
             }
 
             return $params;
+        }
+
+        protected function get_tracking_note( $order_id ) {
+            // error_log('get_tracking_note freight');
+            // error_log(print_r($tracking_note,true));
+            $tracking_note = '';
+            $label_tracking_info = $this->get_dhl_label_tracking( $order_id );
+            // error_log(print_r($label_tracking_info,true));
+            if( ! empty( $label_tracking_info['pickup_response']->message ) ) {
+
+                if (!empty( $label_tracking_info['pickup_response']->message ) ) {
+                    $tracking_note = '<br/><p>' . $label_tracking_info['pickup_response']->message . '</p>';
+                }
+            }
+
+            $tracking_note .= parent::get_tracking_note( $order_id );
+            
+            return $tracking_note;
         }
 /*
         private function validatePickupPoint()

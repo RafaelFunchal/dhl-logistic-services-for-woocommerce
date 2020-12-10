@@ -198,39 +198,18 @@ class Client extends API_Client
 
     protected function get_services_request( $item_info )
     {
-        $results = [];
 
-        $map = [
-            //'notification' => 'pr_dhl_notificationByLetter',
-            'insurance' => 'insurance_amount',
-            'cashOnDelivery' => 'cashOnDelivery',
-            'dangerousGoodsLimitedQuantity' => 'dangerousGoodsLimitedQuantity',
+        $services = [
+            'additionalServices' => [
+                'insurance' => [
+                        'value' => $item_info->shipment['insurance_amount'],
+                        'currency' => $item_info->shipment['currency'],
+                    ],
+                'dangerousGoods' => $item_info->shipment['dangerousGoods'],
+                'greenFreight' => $item_info->shipment['greenFreight'],
+            ]
         ];
 
-        foreach ($map as $apiKey => $wpKey) {
-
-            switch ($apiKey) {
-                case 'cashOnDelivery':
-                case 'insurance':
-
-                    if (isset($item_info->shipment[$wpKey]) && $item_info->shipment[$wpKey] === 'yes') {
-                        $results[$apiKey] = [
-                            'value' => $item_info->shipment['insurance_amount'],
-                            'currency' => $item_info->shipment['currency'],
-                        ];
-                    }
-
-                    break;
-
-                case 'dangerousGoodsLimitedQuantity':
-
-                    $results[$apiKey] = isset($item_info->shipment[$wpKey]) && $item_info->shipment[$wpKey] === 'yes';
-
-                    break;
-            }
-
-        }
-
-        return array( 'additionalServices' => $results );
+        return $services;
     }
 }
