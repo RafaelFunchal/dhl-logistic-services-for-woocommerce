@@ -8,6 +8,8 @@ use PR\DHL\REST_API\Interfaces\API_Driver_Interface;
 
 class Client extends API_Client
 {
+    const FREIGHT_PAYER_CODE_RETURN = '3';
+
     /**
      * The customer client key.
      *
@@ -62,13 +64,26 @@ class Client extends API_Client
         $this->throwError($response);
     }
 
-    public function transportation_request( $item_info )
+    public function transportation_request( $item_info, $is_return = false )
     {
-        $params = array_merge(
-            $this->get_parties_request( $item_info ),
-            $this->get_pieces_request( $item_info ),
-            $this->get_services_request( $item_info )
-        );
+        $pieces_request = $this->get_pieces_request( $item_info );
+        
+        // If the shipment id is passed in, assume a return label is being requested
+        if( $is_return ) {
+            $pieces_request['payerCode']['code'] = static::FREIGHT_PAYER_CODE_RETURN;
+
+            $params = array_merge(
+                $this->get_parties_return_request( $item_info ),
+                $pieces_request
+            );
+        } else {
+            $params = array_merge(
+                $this->get_parties_request( $item_info ),
+                $pieces_request,
+                $this->get_services_request( $item_info )
+            );
+        }
+        
 
         error_log(print_r($params, true));
         $response = $this->post('transportinstructionapi/v1/transportinstruction/sendtransportinstruction', $params);
@@ -154,6 +169,7 @@ class Client extends API_Client
                 ],
                 [
                     'type' => 'Consignee',
+                    'name' => $item_info->recipient['name'],
                     'address' => [
                         'street' => $item_info->recipient['address_1'],
                         'cityName' => $item_info->recipient['city'],
@@ -169,10 +185,43 @@ class Client extends API_Client
         return $parties;
     }
 
+    protected function get_parties_return_request( $item_info ) {
+
+        $parties = [
+            'parties' => [
+                [
+                    'type' => 'Consignor',
+                    'name' => $item_info->recipient['name'],
+                    'address' => [
+                        'street' => $item_info->recipient['address_1'],
+                        'cityName' => $item_info->recipient['city'],
+                        'postalCode' => $item_info->recipient['postcode'],
+                        'countryCode' => $item_info->recipient['country']
+                    ],
+                    'phone' => $item_info->recipient['phone'],
+                    'email' => $item_info->recipient['email'],
+                ],
+                [
+                    'id' => $item_info->shipper['id'],
+                    'type' => 'Consignee',
+                    'name' => $item_info->shipper['name'],
+                    'address' => [
+                        'street' => $item_info->shipper['street'],
+                        'cityName' => $item_info->shipper['city'],
+                        'postalCode' => $item_info->shipper['postcode'],
+                        'countryCode' => $item_info->shipper['country']
+                    ],
+                ]
+            ]
+        ];
+
+        return $parties;
+    }
+
     protected function get_pieces_request( $item_info ) {
 
         $pieces = [
-            'productCode' => '103',
+            'productCode' => $item_info->shipment['product'],
             'payerCode' => [
                     'code' => '1'
                 ],

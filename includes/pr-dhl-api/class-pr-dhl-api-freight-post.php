@@ -19,6 +19,8 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
 
     const API_URL_SANDBOX = 'https://test-api.freight-logistics.dhl.com/';
 
+    const FREIGHT_PRODUCT_CODE_RETURN = '104';
+
     /**
      * The API driver instance.
      *
@@ -176,6 +178,11 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
         // error_log(print_r($label_response,true));
         $label_path = $this->get_label_path( $label_response );
 
+        if( 1 ) {
+            $label_path_return = $this->get_dhl_label_return( $item_info );
+            error_log($label_path_return);
+        }
+
         return array(
             'label_path'            => $label_path,
             'tracking_number'       => $transport_response->id,
@@ -184,14 +191,26 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
         );
     }
 
-    protected function get_label_path( $label_response ) {
+    protected function get_dhl_label_return( $item_info ) {
+
+        $item_info->shipment['product'] = static::FREIGHT_PRODUCT_CODE_RETURN;
+
+        $transport_response = $this->api_client->transportation_request( $item_info, true );
+
+        $label_response = $this->api_client->print_documents_request( $transport_response );
+        // error_log(print_r($label_response,true));
+        return $this->get_label_path( $label_response, 'return' );
+    }
+
+    protected function get_label_path( $label_response, $type = 'item' ) {
+        error_log('get_label_path');
         // error_log(print_r($label_response,true));
         if ( !empty( $label_response[0]->valid ) ) {
             // $label_pdf_data  = base64_decode( $label_info->content );
             // $shipment_id        = $label_info->shipmentID;
-            $this->save_dhl_label_file( 'item', $label_response[0]->name, base64_decode( $label_response[0]->content ) );
+            $this->save_dhl_label_file( $type, $label_response[0]->name, base64_decode( $label_response[0]->content ) );
 
-            return $this->get_dhl_label_file_info( 'item', $label_response[0]->name )->path;
+            return $this->get_dhl_label_file_info( $type, $label_response[0]->name )->path;
         }
 
         throw new \Exception(__( 'No label was created.', 'pr-shipping-dhl' ) );
@@ -249,60 +268,6 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
         return $this->api_client->validate_postal_code($params);
     }
 
-    public function dhl_pickup_request($args = []) {
-        $default = [
-            'payerCode' => [
-                'code' => 1
-            ],
-            'parties' => [],
-            'pieces' => [],
-            'additionalServices' => [],
-            'totalWeight' => null,
-            'totalNumberOfPieces' => 1,
-            'pickupDate' => null,
-        ];
-
-        $params = array_merge($default, $args);
-
-        return $this->api_client->pickup_request($params);
-    }
-
-    public function dhl_transportation_request($args) {
-        $default = [
-            'payerCode' => [
-                'code' => 1
-            ],
-            'parties' => [],
-            'pieces' => [],
-            'additionalServices' => [],
-            'totalWeight' => null,
-            'totalNumberOfPieces' => 1,
-            'pickupDate' => null,
-        ];
-
-        $params = array_merge($default, $args);
-
-        return $this->api_client->transportation_request($params);
-    }
-
-    public function dhl_print_document_request($args) {
-        $default = [
-            'shipment' => [],
-            'options' => []
-        ];
-
-        $params = array_merge($default, $args);
-
-        $label_response = $this->api_client->print_documents_request($params);
-        // error_log(print_r($label_response,true));
-        if ( !empty( $label_response[0]->valid ) ) {
-            // $label_pdf_data  = base64_decode( $label_info->content );
-            // $shipment_id        = $label_info->shipmentID;
-            $this->save_dhl_label_file( 'item', $label_response[0]->name, base64_decode( $label_response[0]->content ) );
-
-            return $this->get_dhl_label_file_info( 'item', $label_response[0]->name )->path;
-        }
-    }
 
     /**
      * Retrieves the filename for DHL item label files.
@@ -319,6 +284,39 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
     }
 
     /**
+     * Retrieves the filename for DHL order label files (a.k.a. merged return label files).
+     *
+     * @since [*next-version*]
+     *
+     * @param string $order_id The DHL order ID.
+     * @param string $format The file format.
+     *
+     * @return string
+     */
+    public function get_dhl_return_label_file_name( $barcode, $format = 'pdf' ) {
+        return sprintf('dhl_return_%s', $barcode);
+    }
+
+    /**
+     * Retrieves the file info for DHL return label files.
+     *
+     * @since [*next-version*]
+     *
+     * @param string $awb The AWB.
+     * @param string $format The file format.
+     *
+     * @return object An object containing the file "path" and "url" strings.
+     */
+    public function get_dhl_return_label_file_info( $barcode, $format = 'pdf' ) {
+        $file_name = $this->get_dhl_return_label_file_name($barcode, $format);
+
+        return (object) array(
+            'path' => PR_DHL()->get_dhl_label_folder_dir() . $file_name,
+            'url' => PR_DHL()->get_dhl_label_folder_url() . $file_name,
+        );
+    }
+
+    /**
      * Retrieves the file info for any DHL label file, based on type.
      *
      * @since [*next-version*]
@@ -328,7 +326,13 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
      *
      * @return object An object containing the file "path" and "url" strings.
      */
-    public function get_dhl_label_file_info( $type, $key ) {      
+    public function get_dhl_label_file_info( $type, $key ) { 
+
+        // Return file info for "awb" type
+        if ( $type === 'return') {
+            return $this->get_dhl_return_label_file_info( $key );
+        }
+
         // Return info for "item" type
         return $this->get_dhl_item_label_file_info( $key, 'pdf' );
     }
