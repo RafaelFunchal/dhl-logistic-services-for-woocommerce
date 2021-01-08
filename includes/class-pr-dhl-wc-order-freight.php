@@ -147,7 +147,16 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                         'custom_attributes'	=> array( $is_disabled => $is_disabled )
                     ]);
                 }
-            }
+			}
+						
+			woocommerce_wp_checkbox([
+				'id'          		=> 'pr_dhl_return_label',
+				'label'       		=> __( 'Return Label:', 'pr-shipping-dhl' ),
+				'placeholder' 		=> '',
+				'description'		=> '',
+				'value'       		=> isset( $dhl_label_items['pr_dhl_return_label'] ) ? $dhl_label_items['pr_dhl_return_label'] : null,
+				'custom_attributes'	=> array( $is_disabled => $is_disabled )
+			]);
 
             woocommerce_wp_text_input([
                 'id'          		=> 'pr_dhl_pickup_date',
@@ -179,7 +188,8 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                 ->add('pr_dhl_insurance_amount')
                 ->add('pr_dhl_package_width')
                 ->add('pr_dhl_package_length')
-                ->add('pr_dhl_package_height')
+				->add('pr_dhl_package_height')
+				->add('pr_dhl_return_label')
                 ->add('pr_dhl_pickup_date')
                 ->toArray();
 

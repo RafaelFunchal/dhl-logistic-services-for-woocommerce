@@ -164,6 +164,9 @@ class Item_Info {
                     }
                 },
 			),
+			'return_label' => array(
+
+			),
 			'dangerousGoods' => array(
 				'default' => false,
 				'sanitize' => function( $value ) use ($self) {

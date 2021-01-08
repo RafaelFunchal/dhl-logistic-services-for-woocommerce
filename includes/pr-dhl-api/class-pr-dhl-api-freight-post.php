@@ -178,9 +178,18 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
         // error_log(print_r($label_response,true));
         $label_path = $this->get_label_path( $label_response );
 
-        if( 1 ) {
-            $label_path_return = $this->get_dhl_label_return( $item_info );
-            error_log($label_path_return);
+        if( isset( $args[ 'order_details' ][ 'return_label' ] ) && $args[ 'order_details' ][ 'return_label' ] == 'yes' ) {
+			$label_path_return 	= $this->get_dhl_label_return( $item_info );
+			
+			$pathinfo 			= pathinfo( $label_path->path );
+			$file_name 			= $pathinfo['basename'];
+			$label_path 		= $this->merge_dhl_label_output( array(
+				$label_path,
+				$label_path_return
+			), $filename );
+			
+			error_log($label_path_return);
+
         }
 
         return array(
@@ -189,7 +198,47 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
             'routing_code'          => $transport_response->routingCode,
             'pickup_response'       => $pickup_reponse
         );
-    }
+	}
+	
+	protected function merge_dhl_label_output( $label_paths, $filename ){
+		
+		if( count( $label_paths) == 1 ){
+			foreach( $label_paths as $path ){
+				if( file_exists( $path->path ) ){
+					return $path;
+				}
+			}
+		}
+		
+		// Merge PDF files
+		$loader = PR_DHL_Libraryloader::instance();
+		$pdfMerger = $loader->get_pdf_merger();
+
+		if( $pdfMerger ){
+			
+			$has_file = false;
+			
+			foreach( $label_paths as $path ){
+				if( file_exists( $path->path ) ){
+					$pdfMerger->addPDF( $path->path, 'all' );
+					$has_file = true;
+				}
+			}
+
+			if( $has_file ){
+				$label_path = (object) array(
+					'path' => PR_DHL()->get_dhl_label_folder_url() . $filename,
+					'url' => PR_DHL()->get_dhl_label_folder_dir() . $filename
+				);
+				$pdfMerger->merge( 'file',  $label_path->path );
+
+				return $label_path;
+			}
+			
+		}
+
+		return false;
+	}
 
     protected function get_dhl_label_return( $item_info ) {
 
