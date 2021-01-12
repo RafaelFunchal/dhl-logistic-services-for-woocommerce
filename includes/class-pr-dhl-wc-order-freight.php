@@ -150,11 +150,11 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
 			}
 						
 			woocommerce_wp_checkbox([
-				'id'          		=> 'pr_dhl_return_label',
+				'id'          		=> 'pr_dhl_label_return',
 				'label'       		=> __( 'Return Label:', 'pr-shipping-dhl' ),
 				'placeholder' 		=> '',
 				'description'		=> '',
-				'value'       		=> isset( $dhl_label_items['pr_dhl_return_label'] ) ? $dhl_label_items['pr_dhl_return_label'] : null,
+				'value'       		=> isset( $dhl_label_items['pr_dhl_label_return'] ) ? $dhl_label_items['pr_dhl_label_return'] : null,
 				'custom_attributes'	=> array( $is_disabled => $is_disabled )
 			]);
 
@@ -189,7 +189,7 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                 ->add('pr_dhl_package_width')
                 ->add('pr_dhl_package_length')
 				->add('pr_dhl_package_height')
-				->add('pr_dhl_return_label')
+				->add('pr_dhl_label_return')
                 ->add('pr_dhl_pickup_date')
                 ->toArray();
 
@@ -342,11 +342,24 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                 return;
             }
 
-            $order = wc_get_order($post_id);
+			$order = wc_get_order($post_id);
+			
+			$freight_addi_sevices = $order->get_meta('dhl_freight_additional_services', true);
+			
+			/*$this->additional_services = $freight_addi_sevices->additionalServices->filter(function ($item) {
+				return in_array($item->type, $this->getAdditionalServicesWhiteList());
+			});*/
 
-            $this->additional_services = collect($order->get_meta('dhl_freight_additional_services', true)->additionalServices)->filter(function ($item) {
-                return in_array($item->type, $this->getAdditionalServicesWhiteList());
-            });
+			if( isset( $freight_addi_sevices->additionalServices ) ){
+
+				foreach( $freight_addi_sevices->additionalServices as $addi_service ){
+					if( isset( $addi_service->type ) && in_array( $addi_service->type, $this->getAdditionalServicesWhiteList() ) ){
+
+						$this->additional_services[] = $addi_service;	
+
+					}
+				}
+			}
         }
 
         private function getAllowedCurrency()
