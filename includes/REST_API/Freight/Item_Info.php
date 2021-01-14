@@ -164,7 +164,17 @@ class Item_Info {
                     }
                 },
 			),
-			'return_label' => array(
+			'label_return' => array(
+				'default' => false,
+				'rename' => 'is_return',
+				'sanitize' => function( $value ) use ($self) {
+
+					if( !empty( $value ) && $value == 'yes' ) {
+                        return true;
+                    } else {
+                    	return false;
+                    }
+				}
 
 			),
 			'dangerousGoods' => array(

@@ -145,7 +145,7 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
      * @since [*next-version*]
      */
     public function get_dhl_label( $args ) {
-
+        // error_log(print_r($args,true));
         $order_id = isset( $args[ 'order_details' ][ 'order_id' ] )
             ? $args[ 'order_details' ][ 'order_id' ]
             : null;
@@ -160,7 +160,7 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
         }
 
         $transport_response = $this->api_client->transportation_request( $item_info );
-        error_log(print_r($transport_response,true));
+        // error_log(print_r($transport_response,true));
 
         $pickup_reponse = '';
         if ( $this->get_setting('dhl_enable_pickup') == 'yes') {
@@ -178,17 +178,18 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
         // error_log(print_r($label_response,true));
         $label_path = $this->get_label_path( $label_response );
 
-        if( isset( $args[ 'order_details' ][ 'return_label' ] ) && $args[ 'order_details' ][ 'return_label' ] == 'yes' ) {
+        error_log(print_r($item_info,true));
+        if( $item_info->shipment['is_return'] ) {
 			$label_path_return 	= $this->get_dhl_label_return( $item_info );
 			
-			$pathinfo 			= pathinfo( $label_path->path );
-			$file_name 			= $pathinfo['basename'];
+			// $pathinfo 			= pathinfo( $label_path->path );
+			// $file_name 			= $pathinfo['basename'];
 			$label_path 		= $this->merge_dhl_label_output( array(
 				$label_path,
 				$label_path_return
-			), $filename );
+			), $order_id );
 			
-			error_log($label_path_return);
+			// error_log($label_path_return);
 
         }
 
@@ -200,11 +201,11 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
         );
 	}
 	
-	protected function merge_dhl_label_output( $label_paths, $filename ){
-		
+	protected function merge_dhl_label_output( $label_paths, $order_id ){
+		// error_log(print_r($label_paths, true));
 		if( count( $label_paths) == 1 ){
 			foreach( $label_paths as $path ){
-				if( file_exists( $path->path ) ){
+				if( file_exists( $path ) ){
 					return $path;
 				}
 			}
@@ -219,18 +220,16 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
 			$has_file = false;
 			
 			foreach( $label_paths as $path ){
-				if( file_exists( $path->path ) ){
-					$pdfMerger->addPDF( $path->path, 'all' );
+				if( file_exists( $path ) ){
+					$pdfMerger->addPDF( $path, 'all' );
 					$has_file = true;
 				}
 			}
 
 			if( $has_file ){
-				$label_path = (object) array(
-					'path' => PR_DHL()->get_dhl_label_folder_url() . $filename,
-					'url' => PR_DHL()->get_dhl_label_folder_dir() . $filename
-				);
-				$pdfMerger->merge( 'file',  $label_path->path );
+                $filename = 'dhl-label-return-' . $order_id . '.pdf';
+				$label_path = PR_DHL()->get_dhl_label_folder_dir() . $filename;
+				$pdfMerger->merge( 'file',  $label_path );
 
 				return $label_path;
 			}
@@ -252,7 +251,7 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
     }
 
     protected function get_label_path( $label_response, $type = 'item' ) {
-        error_log('get_label_path');
+        // error_log('get_label_path');
         // error_log(print_r($label_response,true));
         if ( !empty( $label_response[0]->valid ) ) {
             // $label_pdf_data  = base64_decode( $label_info->content );

@@ -85,9 +85,9 @@ class Client extends API_Client
         }
         
 
-        error_log(print_r($params, true));
+        // error_log(print_r($params, true));
         $response = $this->post('transportinstructionapi/v1/transportinstruction/sendtransportinstruction', $params);
-        error_log(print_r($response,true));
+        // error_log(print_r($response,true));
         if ($response->status === 200 && $response->body->status !== 'Error') {
             return $response->body->transportInstruction;
         }
