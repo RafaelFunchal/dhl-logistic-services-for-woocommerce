@@ -34,7 +34,7 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
         }
 
         protected function get_tracking_url() {
-            return null;
+            return 'https://activetracing.dhl.com/DatPublic/search.do?search=consignmentId&autoSearch=true&l=sv&at=consignment&a=';
         }
 
         public function get_bulk_actions() {
@@ -158,21 +158,26 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
 				'custom_attributes'	=> array( $is_disabled => $is_disabled )
 			]);
 
-            woocommerce_wp_text_input([
-                'id'          		=> 'pr_dhl_pickup_date',
-                'label'       		=> __( 'Pickup Date:', 'pr-shipping-dhl' ),
-                'placeholder' 		=> '',
-                'description'		=> '',
-                'value'       		=>
-                    isset( $dhl_label_items['pr_dhl_pickup_date'] ) ?
-                        $dhl_label_items['pr_dhl_pickup_date'] :
-                        (isset($this->shipping_dhl_settings['pr_dhl_pickup_date']) ? $this->shipping_dhl_settings['pr_dhl_pickup_date'] : null),
-                'custom_attributes'	=> array( $is_disabled => $is_disabled )
-            ]);
+            if( isset( $this->shipping_dhl_settings['dhl_enable_pickup'] ) && ( $this->shipping_dhl_settings['dhl_enable_pickup'] == 'yes') ) {
+
+                woocommerce_wp_text_input([
+                                'id'                => 'pr_dhl_pickup_date',
+                                'label'             => __( 'Pickup Date:', 'pr-shipping-dhl' ),
+                                'placeholder'       => '',
+                                'description'       => '',
+                                'value'             =>
+                                    isset( $dhl_label_items['pr_dhl_pickup_date'] ) ?
+                                        $dhl_label_items['pr_dhl_pickup_date'] :
+                                        (isset($this->shipping_dhl_settings['pr_dhl_pickup_date']) ? $this->shipping_dhl_settings['pr_dhl_pickup_date'] : null),
+                                'custom_attributes' => array( $is_disabled => $is_disabled ),
+                                'class'             => 'short date-picker'
+                            ]);
+            }
+            
 
             // Enqueue scripts in the way the parent did
-            wp_enqueue_script( 'pr-dhl-fr-main-script-admin', PR_DHL_PLUGIN_DIR_URL . '/assets/dist/dhl-admin.js', array(), PR_DHL_VERSION );
-            wp_enqueue_style( 'pr-dhl-fr-main-style-admin', PR_DHL_PLUGIN_DIR_URL . '/assets/dist/dhl-admin.css');
+            // wp_enqueue_script( 'pr-dhl-fr-main-script-admin', PR_DHL_PLUGIN_DIR_URL . '/assets/dist/dhl-admin.js', array(), PR_DHL_VERSION );
+            // wp_enqueue_style( 'pr-dhl-fr-main-style-admin', PR_DHL_PLUGIN_DIR_URL . '/assets/dist/dhl-admin.css');
         }
 
         public function get_additional_meta_ids()
@@ -297,12 +302,12 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                 throw new \Exception('Invalid insurance amount!');
             }
 
-            // Check Pickupdate
-            if (! isset($params['order_details']['pickup_date']) ||
-                ! $params['order_details']['pickup_date']
-            ) {
-                throw new \Exception('Invalid pickup date!');
-            }
+            // // Check Pickupdate
+            // if (! isset($params['order_details']['pickup_date']) ||
+            //     ! $params['order_details']['pickup_date']
+            // ) {
+            //     throw new \Exception('Invalid pickup date!');
+            // }
 
             return $params;
         }
@@ -384,6 +389,10 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
             header(sprintf("Content-Disposition:attachment; filename=%s", $label_info[0]->name));
 
             echo base64_decode($label_info[0]->content);
+        }
+
+        protected function can_delete_label($order_id) {
+            return false;
         }
     }
 
