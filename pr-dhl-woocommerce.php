@@ -81,7 +81,7 @@ class PR_DHL_WC {
 	protected $base_country_code = '';
 
 	// 'LI', 'CH', 'NO'
-	protected $eu_iso2 = array( 'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SI', 'SK', 'ES', 'SE', 'GB');
+	protected $eu_iso2 = array( 'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SI', 'SK', 'ES', 'SE');
 
 	// These are all considered domestic by DHL
 	protected $us_territories = array( 'US', 'GU', 'AS', 'PR', 'UM', 'VI' );
@@ -210,7 +210,6 @@ class PR_DHL_WC {
 
         add_action( 'admin_enqueue_scripts', array( $this, 'dhl_enqueue_scripts') );
 
-        // @TODO WTF??
         add_action( 'woocommerce_shipping_init', array( $this, 'includes' ) );
         add_filter( 'woocommerce_shipping_methods', array( $this, 'add_shipping_method' ) );
         // Test connection
@@ -588,12 +587,12 @@ class PR_DHL_WC {
 
 		$exclusion_work_day = array( );
 		$work_days = array(
-		            'Mon' => __('mon', 'pr-shipping-dhl'),
-		            'Tue' => __('tue', 'pr-shipping-dhl'),
-		            'Wed' => __('wed', 'pr-shipping-dhl'),
-		            'Thu' => __('thu', 'pr-shipping-dhl'),
-		            'Fri' => __('fri', 'pr-shipping-dhl'),
-		            'Sat' => __('sat', 'pr-shipping-dhl') );
+		            'Mon' => 'mon', 
+		            'Tue' => 'tue',
+		            'Wed' => 'wed',
+		            'Thu' => 'thu',
+		            'Fri' => 'fri',
+		            'Sat' => 'sat');
 
 		foreach ($work_days as $key => $value) {
 			$exclusion_day = 'dhl_preferred_exclusion_' . $value;
