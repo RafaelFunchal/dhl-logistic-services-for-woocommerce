@@ -163,6 +163,10 @@ class Item_Info {
                         throw new Exception( __( 'The "Insurance Value" cannot be empty', 'pr-shipping-dhl' ) );
                     }
                 },
+                'sanitize' => function( $value ) use ($self) {
+
+					return $self->float_round_sanitization( $value, 2 );
+				}
 			),
 			'label_return' => array(
 				'default' => false,
@@ -429,7 +433,8 @@ class Item_Info {
 
 		$float = round( floatval( $float ), $numcomma);
 
-        return number_format($float, 2, '.', '');
+		// Return float to ensure a string is not passed via the API
+        return (float)number_format($float, 2, '.', '');
 	}
 
 	protected function string_length_sanitization( $string, $max ) {
