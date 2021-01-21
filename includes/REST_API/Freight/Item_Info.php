@@ -177,7 +177,7 @@ class Item_Info {
 				}
 
 			),
-			'dangerousGoods' => array(
+			'dangerousGoodsLimitedQuantity' => array(
 				'default' => false,
 				'sanitize' => function( $value ) use ($self) {
 

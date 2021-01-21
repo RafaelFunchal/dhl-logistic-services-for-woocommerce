@@ -254,7 +254,7 @@ class Client extends API_Client
                         'value' => $item_info->shipment['insurance_amount'],
                         'currency' => $item_info->shipment['currency'],
                     ],
-                'dangerousGoods' => $item_info->shipment['dangerousGoods'],
+                'dangerousGoodsLimitedQuantity' => $item_info->shipment['dangerousGoodsLimitedQuantity'],
                 'greenFreight' => $item_info->shipment['greenFreight'],
             ]
         ];
