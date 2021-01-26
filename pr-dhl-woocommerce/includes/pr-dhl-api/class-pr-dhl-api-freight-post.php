@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) || class_exists( 'PR_DHL_API_Freight_Post', false ) 
 
 class PR_DHL_API_Freight_Post extends PR_DHL_API
 {
-    const API_URL_PRODUCTION = 'https://api.freight-logistics.dhl.com/';
+    const API_URL_PRODUCTION = 'https://test-api.freight-logistics.dhl.com/';
 
     const API_URL_SANDBOX = 'https://test-api.freight-logistics.dhl.com/';
 
@@ -145,7 +145,7 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
      * @since [*next-version*]
      */
     public function get_dhl_label( $args ) {
-        // error_log(print_r($args,true));
+        error_log(print_r($args,true));
         $order_id = isset( $args[ 'order_details' ][ 'order_id' ] )
             ? $args[ 'order_details' ][ 'order_id' ]
             : null;
@@ -160,12 +160,14 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
         }
 
         $transport_response = $this->api_client->transportation_request( $item_info );
+        // error_log(print_r($transport_response,true));
 
         $pickup_reponse = '';
         if ( $this->get_setting('dhl_enable_pickup') == 'yes') {
 
             if( $this->api_client->validate_postal_code( $item_info ) ) {
                 $pickup_reponse = $this->api_client->pickup_request( $transport_response );
+                // error_log(print_r($pickup_reponse,true));
 
             } else {
                 throw new \Exception(__( 'Postcode is not valid for pickup', 'pr-shipping-dhl' ) );
@@ -173,15 +175,28 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
         }
 
         $label_response = $this->api_client->print_documents_request( $transport_response );
+        // error_log(print_r($label_response,true));
         $label_path = $this->get_label_path( $label_response );
 
+        ob_start();                    // start buffer capture
+        var_dump( $item_info );           // dump the values
+        $contents = ob_get_contents(); // put the buffer into a variable
+        ob_end_clean();                // end capture
+        error_log( $contents );  
+
+        // error_log(print_r($item_info,true));
         if( $item_info->shipment['is_return'] ) {
 			$label_path_return 	= $this->get_dhl_label_return( $item_info );
-
+			
+			// $pathinfo 			= pathinfo( $label_path->path );
+			// $file_name 			= $pathinfo['basename'];
 			$label_path 		= $this->merge_dhl_label_output( array(
 				$label_path,
 				$label_path_return
 			), $order_id );
+			
+			// error_log($label_path_return);
+
         }
 
         return array(
@@ -193,6 +208,7 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
 	}
 	
 	protected function merge_dhl_label_output( $label_paths, $order_id ){
+		// error_log(print_r($label_paths, true));
 		if( count( $label_paths) == 1 ){
 			foreach( $label_paths as $path ){
 				if( file_exists( $path ) ){
@@ -236,12 +252,13 @@ class PR_DHL_API_Freight_Post extends PR_DHL_API
         $transport_response = $this->api_client->transportation_request( $item_info, true );
 
         $label_response = $this->api_client->print_documents_request( $transport_response );
-
+        // error_log(print_r($label_response,true));
         return $this->get_label_path( $label_response, 'return' );
     }
 
     protected function get_label_path( $label_response, $type = 'item' ) {
-
+        // error_log('get_label_path');
+        // error_log(print_r($label_response,true));
         if ( !empty( $label_response[0]->valid ) ) {
             // $label_pdf_data  = base64_decode( $label_info->content );
             // $shipment_id        = $label_info->shipmentID;

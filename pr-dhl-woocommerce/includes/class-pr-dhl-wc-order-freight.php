@@ -8,9 +8,9 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
 
     class PR_DHL_WC_Order_Freight extends PR_DHL_WC_Order {
 
-        protected $carrier = 'DHL Freight';
+        protected $carrier = 'DHL Freight Sweden';
 
-        protected $service = 'DHL Freight';
+        protected $service = 'DHL Freight Sweden';
 
         private $additional_services_whitelist = [
             'greenFreight', 'insurance', 'dangerousGoodsLimitedQuantity'
@@ -47,8 +47,9 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
 
         public function get_dhl_label_items( $order_id )
         {
+            // error_log('get_dhl_label_items');
             $items = parent::get_dhl_label_items($order_id);
-
+            // error_log(print_r($items,true));
             $order = wc_get_order($order_id);
 
             if (! $this->additional_services) {
@@ -75,7 +76,7 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
                     }
                 }
             }
-
+            // error_log(print_r($items,true));
             return $items;
         }
 
@@ -214,6 +215,8 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
 
         public function checkRules($params, $order_id )
         {
+            // error_log('checkRules');
+            // error_log(print_r($params,true));
             // Check if access point set
             if (! get_post_meta($order_id, 'dhl_freight_point', true)) {
                 throw new Exception(__('Invalid access point!', 'pr-shipping-dhl'));
@@ -294,9 +297,11 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
         }
 
         protected function get_tracking_note( $order_id ) {
+            // error_log('get_tracking_note freight');
+            // error_log(print_r($tracking_note,true));
             $tracking_note = '';
             $label_tracking_info = $this->get_dhl_label_tracking( $order_id );
-
+            // error_log(print_r($label_tracking_info,true));
             if( ! empty( $label_tracking_info['pickup_response']->message ) ) {
 
                 if (!empty( $label_tracking_info['pickup_response']->message ) ) {
