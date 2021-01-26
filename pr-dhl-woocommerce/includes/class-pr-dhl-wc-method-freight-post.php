@@ -12,9 +12,9 @@ class PR_DHL_WC_Method_Freight_Post extends WC_Shipping_Method {
     public function __construct( $instance_id = 0 ) {
         $this->id = 'pr_dhl_fr';
         $this->instance_id = absint( $instance_id );
-        $this->title = __( 'Freight Post', 'pr-shipping-dhl' );
-        $this->method_title = __( 'Freight Post', 'pr-shipping-dhl' );
-        $this->method_description =  __( 'Freight Post', 'pr-shipping-dhl' );
+        $this->title = __( 'DHL Freight', 'pr-shipping-dhl' );
+        $this->method_title = __( 'DHL Freight', 'pr-shipping-dhl' );
+        $this->method_description =  __( 'To start creating DHL Freight shipping labels and return back a tracking number to your customers, please fill in your user credentials as provided by DHL Freight.', 'pr-shipping-dhl' );
 
         $this->init();
     }
