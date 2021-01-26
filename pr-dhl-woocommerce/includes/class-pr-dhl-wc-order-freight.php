@@ -370,9 +370,9 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
             echo base64_decode($label_info[0]->content);
         }
 
-        // protected function can_delete_label($order_id) {
-        //     return false;
-        // }
+        protected function can_delete_label($order_id) {
+            return false;
+        }
 
         protected function get_delete_label_msg() {
             return '<p class="wc_dhl_delete_msg">' . __('To cancel this booking you must call DHL Freight customer support at 0771-345-345.', 'pr-shipping-dhl') . '</p>';
