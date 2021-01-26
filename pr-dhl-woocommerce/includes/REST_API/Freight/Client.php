@@ -35,6 +35,8 @@ class Client extends API_Client
                 ? $response->body->errorMessage
                 : ( ! empty($response->body->UserMessage)
                 ? $response->body->UserMessage
+                : (! empty($response->body->validationErrors[0]->message))
+                ? $response->body->validationErrors[0]->message
                 : __('No message sent!', 'pr-shipping-dhl') ) );
 
         throw new \Exception(
@@ -85,14 +87,13 @@ class Client extends API_Client
         }
         
 
-        // error_log(print_r($params, true));
         $response = $this->post('transportinstructionapi/v1/transportinstruction/sendtransportinstruction', $params);
-        // error_log(print_r($response,true));
+
         if ($response->status === 200 && $response->body->status !== 'Error') {
             return $response->body->transportInstruction;
         }
 
-        throw new \Exception($response->body->validationErrors[0]->message);
+        $this->throwError($response);
     }
 
     public function validate_postal_code( $item_info )
@@ -131,9 +132,7 @@ class Client extends API_Client
                             ]
                     );
 
-        // error_log(print_r($params,true));
         $response = $this->post('printapi/v1/print/printdocuments', $params);
-        // error_log(print_r($response,true));
         if ($response->status === 200) {
             return $response->body->reports;
         }
