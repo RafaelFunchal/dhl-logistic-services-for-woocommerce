@@ -95,7 +95,6 @@ class PR_DHL_API_Factory {
 				case 'SK':
 				case 'SI':
 				case 'ES':
-				case 'SE':
 				case 'CH':
 				case 'TR':
 				case 'UA':
@@ -103,6 +102,9 @@ class PR_DHL_API_Factory {
 				case 'VA':
 					$dhl_obj = new PR_DHL_API_Deutsche_Post( $country_code );
 					break;
+                case 'SE':
+                    $dhl_obj = new PR_DHL_API_Freight_Post( $country_code );
+                    break;
 				default:
 					throw new Exception( __('The DHL plugin is not supported in your store\'s "Base Location"', 'pr-shipping-dhl') );
 			}

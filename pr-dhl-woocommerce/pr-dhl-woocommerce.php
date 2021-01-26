@@ -148,6 +148,7 @@ class PR_DHL_WC {
 
 		$this->define( 'PR_DHL_PAKET_TRACKING_URL', 'https://nolp.dhl.de/nextt-online-public/report_popup.jsp?idc=' );
 		$this->define( 'PR_DHL_PAKET_BUSSINESS_PORTAL', 'https://www.dhl-geschaeftskundenportal.de' );
+		$this->define( 'PR_DHL_PAKET_DEVELOPER_PORTAL', 'https://entwickler.dhl.de/' );
 
 		$this->define( 'PR_DHL_PACKSTATION', __('Packstation ', 'pr-shipping-dhl') );
 		$this->define( 'PR_DHL_PARCELSHOP', __('Postfiliale ', 'pr-shipping-dhl') );
@@ -232,6 +233,9 @@ class PR_DHL_WC {
 					// $this->shipping_dhl_notice = new PR_DHL_WC_Notice();
 				} elseif ( $dhl_obj->is_dhl_deutsche_post() ) {
 				    $this->shipping_dhl_order = new PR_DHL_WC_Order_Deutsche_Post();
+                } elseif ( $dhl_obj->is_dhl_freight() ) {
+                    $this->shipping_dhl_order = new PR_DHL_WC_Order_Freight();
+				    $this->shipping_dhl_frontend = new PR_DHL_Front_End_Freight();
                 }
 				
 				// Ensure DHL Labels folder exists
@@ -290,7 +294,6 @@ class PR_DHL_WC {
                 'test_con_nonce' => wp_create_nonce( 'pr-dhl-test-con' ),
             );
 
-            /*
 			if( isset( $_GET['section'] ) && $_GET['section'] == 'pr_dhl_paket' ){
 
 				wp_enqueue_script(
@@ -299,8 +302,8 @@ class PR_DHL_WC {
 					array( 'jquery' ),
 					PR_DHL_VERSION
 				);
-
-			}*/
+				// wp_localize_script( 'wc-shipment-dhl-paket-settings-js', 'dhl_paket_settings_obj', PR_DHL_WC_Method_Paket::sandbox_info() );
+			}
 			
             wp_enqueue_script(
                 'wc-shipment-dhl-testcon-js',
@@ -341,7 +344,8 @@ class PR_DHL_WC {
 		// Check country somehow
 		try {
 			$dhl_obj = $this->get_dhl_factory();
-			
+
+			// @TODO We could add abstract method to check if DHL, and just pass dhl_object class name instead hardcoding
 			if( $dhl_obj->is_dhl_paket() ) {
 				$pr_dhl_ship_meth = 'PR_DHL_WC_Method_Paket';
 				$shipping_method['pr_dhl_paket'] = $pr_dhl_ship_meth;
@@ -354,7 +358,10 @@ class PR_DHL_WC {
 			} elseif( $dhl_obj->is_dhl_deutsche_post() ) {
 				$pr_dhl_ship_meth = 'PR_DHL_WC_Method_Deutsche_Post';
 				$shipping_method['pr_dhl_dp'] = $pr_dhl_ship_meth;
-			}
+			} elseif( $dhl_obj->is_dhl_freight() ) {
+                $pr_dhl_ship_meth = 'PR_DHL_WC_Method_Freight_Post';
+                $shipping_method['pr_dhl_fr'] = $pr_dhl_ship_meth;
+            }
 
 		} catch (Exception $e) {
 			// do nothing
@@ -418,9 +425,18 @@ class PR_DHL_WC {
 			
 			if( $dhl_obj->is_dhl_paket() ) {
 
-				if ( defined( 'PR_DHL_SANDBOX' ) && PR_DHL_SANDBOX ) {
-					$api_cred['user'] = PR_DHL_CIG_USR_QA;
-					$api_cred['password'] = PR_DHL_CIG_PWD_QA;
+				$shipping_dhl_settings 	= $this->get_shipping_dhl_settings();
+				$dhl_sandbox 			= isset( $shipping_dhl_settings['dhl_sandbox'] ) ? $shipping_dhl_settings['dhl_sandbox'] : '';
+				if ( $dhl_sandbox == 'yes' || ( defined( 'PR_DHL_SANDBOX' ) && PR_DHL_SANDBOX ) ) {
+					
+					$user = defined( 'PR_DHL_CIG_USR_QA' )? PR_DHL_CIG_USR_QA : '';
+					$user = !empty( $shipping_dhl_settings['dhl_api_sandbox_user'] )? $shipping_dhl_settings['dhl_api_sandbox_user'] : $user;
+					
+					$pass = defined( 'PR_DHL_CIG_PWD_QA' )? PR_DHL_CIG_PWD_QA : '';
+					$pass = !empty( $shipping_dhl_settings['dhl_api_sandbox_pwd'] )? $shipping_dhl_settings['dhl_api_sandbox_pwd'] : $pass;
+
+					$api_cred['user'] = $user;
+					$api_cred['password'] = $pass;
 					$api_cred['auth_url'] = PR_DHL_CIG_AUTH_QA;
 				} else {
 					$api_cred['user'] = PR_DHL_CIG_USR;
@@ -462,12 +478,14 @@ class PR_DHL_WC {
 			$dhl_obj = $this->get_dhl_factory();
 			
 			if( $dhl_obj->is_dhl_paket() ) {
-				$dhl_settings = get_option('woocommerce_pr_dhl_paket_settings');
+				$dhl_settings = $dhl_obj->get_settings();
 			} elseif( $dhl_obj->is_dhl_ecomm() ) {
 				$dhl_settings = get_option('woocommerce_pr_dhl_ecomm_settings');
 			} elseif ( $dhl_obj->is_dhl_ecs_asia() ) {
 			    $dhl_settings = $dhl_obj->get_settings();
             } elseif ( $dhl_obj->is_dhl_deutsche_post() ) {
+			    $dhl_settings = $dhl_obj->get_settings();
+            } elseif ( $dhl_obj->is_dhl_freight() ) {
 			    $dhl_settings = $dhl_obj->get_settings();
             }
 

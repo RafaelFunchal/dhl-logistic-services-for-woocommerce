@@ -1,6 +1,7 @@
 .wc_dhl_error,
 .wc_dhl_delete #dhl_delete_label,
-.wc_dhl_delete #pr_dhl_dp_delete_label {
+.wc_dhl_delete #pr_dhl_dp_delete_label,
+.wc_dhl_delete_msg {
 	color: #a00;
 }
 
