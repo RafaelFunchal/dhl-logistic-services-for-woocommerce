@@ -39,7 +39,7 @@ if ( ! class_exists( 'PR_DHL_WC_Order_Freight' ) ) :
 
         public function get_bulk_actions() {
             $shop_manager_actions = array(
-                'pr_dhl_create_labels'      => __( 'DHL Create Labels', 'pr-shipping-dhl' )
+                // 'pr_dhl_create_labels'      => __( 'DHL Create Labels', 'pr-shipping-dhl' )
             );
 
             return $shop_manager_actions;
