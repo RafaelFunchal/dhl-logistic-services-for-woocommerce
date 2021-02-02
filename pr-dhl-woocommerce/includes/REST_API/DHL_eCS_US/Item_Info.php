@@ -155,6 +155,9 @@ class Item_Info {
 					}
 				},
 			),
+			'billing_ref' => array(
+			    'default'   => '',
+			),
 			'weight'     => array(
                 'error'    => __( 'Order "Weight" is empty!', 'pr-shipping-dhl' ),
                 'validate' => function( $weight ) use ($self) {

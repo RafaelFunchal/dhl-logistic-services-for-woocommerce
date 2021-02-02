@@ -81,6 +81,14 @@ class PR_DHL_WC_Order_eCS_US extends PR_DHL_WC_Order {
 			'value'       		=> $selected_dhl_desc,
 			'custom_attributes'	=> array( $is_disabled => $is_disabled, 'maxlength' => '50' )
 		) );
+
+		woocommerce_wp_text_input( array(
+			'id'          		=> 'pr_dhl_billing_ref',
+			'label'       		=> __( 'Billing Reference: ', 'pr-shipping-dhl' ),
+			'placeholder' 		=> '',
+			'description'		=> '',
+			'custom_attributes'	=> array( $is_disabled => $is_disabled, 'maxlength' => '50' )
+		) );
 		
 		if( $this->is_cod_payment_method( $order_id ) ) {
 
@@ -103,7 +111,7 @@ class PR_DHL_WC_Order_eCS_US extends PR_DHL_WC_Order {
 	 */
 	public function get_additional_meta_ids( ) {
 
-		return array( 'pr_dhl_duties', 'pr_dhl_description', 'pr_dhl_is_cod' );
+		return array( 'pr_dhl_duties', 'pr_dhl_description', 'pr_dhl_billing_ref', 'pr_dhl_is_cod' );
 
 	}
 	
@@ -207,6 +215,10 @@ class PR_DHL_WC_Order_eCS_US extends PR_DHL_WC_Order {
 			} else {
 				$args['order_details']['order_note'] = $order->customer_note;
 			}
+		}
+
+		if ( ! empty( $dhl_label_items['pr_dhl_billing_ref'] ) ) {
+			$args['order_details']['billing_ref'] = $dhl_label_items['pr_dhl_billing_ref'];
 		}
 
 		if ( ! empty( $dhl_label_items['pr_dhl_duties'] ) ) {
