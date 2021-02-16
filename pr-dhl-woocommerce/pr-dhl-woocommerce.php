@@ -133,7 +133,7 @@ class PR_DHL_WC {
 		// DHL eCommerce
 		$this->define( 'PR_DHL_REST_AUTH_URL', 'https://api.dhlecommerce.com' );
 		$this->define( 'PR_DHL_REST_AUTH_URL_QA', 'https://api-qa.dhlecommerce.com' );
-		$this->define( 'PR_DHL_ECOMM_TRACKING_URL', 'https://webtrack.dhlglobalmail.com/?trackingnumber=' );
+		$this->define( 'PR_DHL_ECOMM_TRACKING_URL', 'https://webtrack-sandbox.dhlecs.com/?trackingnumber=' );
 
 		// DHL Paket
 		$this->define( 'PR_DHL_CIG_USR', 'dhl_woocommerce_plugin_2_1' );
