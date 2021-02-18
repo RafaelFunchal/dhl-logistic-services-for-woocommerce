@@ -346,12 +346,15 @@ class PR_DHL_API_eCS_US extends PR_DHL_API {
 		update_post_meta( $order_id, 'pr_dhl_ecsus_package_id', $label_response['packageId'] );
 		
 		//$this->save_dhl_label_file( 'item', $item_barcode, $label_pdf_data );
+		
+		// For domestic add "trackingId" otherwise international is "packageId"
+		$tracking_id = isset( $label_response['trackingId'] ) ? $label_response['trackingId'] : $label_response['packageId'];
 
 		return array(
 			'label_path' 			=> $item_file_info->path,
 			'label_url' 			=> $item_file_info->url,
-			'tracking_number' 		=> $label_response['packageId'],
-			'dhl_package_id' 		=> $label_response['dhlPackageId'],
+			'tracking_number' 		=> $tracking_id,
+			'dhl_package_id' 		=> $label_response['dhlPackageId']
 		);
 	}
 
