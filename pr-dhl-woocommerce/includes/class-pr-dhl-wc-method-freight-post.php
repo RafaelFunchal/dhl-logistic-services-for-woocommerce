@@ -12,9 +12,9 @@ class PR_DHL_WC_Method_Freight_Post extends WC_Shipping_Method {
     public function __construct( $instance_id = 0 ) {
         $this->id = 'pr_dhl_fr';
         $this->instance_id = absint( $instance_id );
-        $this->title = __( 'DHL Freight', 'pr-shipping-dhl' );
-        $this->method_title = __( 'DHL Freight', 'pr-shipping-dhl' );
-        $this->method_description =  __( 'To start creating DHL Freight shipping labels and return back a tracking number to your customers, please fill in your user credentials as provided by DHL Freight.', 'pr-shipping-dhl' );
+        $this->title = __( 'DHL Freight (Sweden)', 'pr-shipping-dhl' );
+        $this->method_title = __( 'DHL Freight (Sweden)', 'pr-shipping-dhl' );
+        $this->method_description =  __( 'To start using this plugin for creating pickup request, send shipment data and print necessary documents for DHL Freight (Sweden) and the product DHL Service Point and DHL Service Point Return. ', 'pr-shipping-dhl' );
 
         $this->init();
     }
@@ -71,17 +71,17 @@ class PR_DHL_WC_Method_Freight_Post extends WC_Shipping_Method {
                 'class'       => '',
             ),
             'dhl_client_name'                => array(
-                'title'       => __( 'Client Name', 'pr-shipping-dhl' ),
+                'title'       => __( 'Customer Name', 'pr-shipping-dhl' ),
                 'type'        => 'text',
                 'default'     => '',
             ),
             'dhl_client_account'  => array(
-                'title'       => __( 'Client Account', 'pr-shipping-dhl' ),
+                'title'       => __( 'Customer Account', 'pr-shipping-dhl' ),
                 'type'        => 'text',
                 'default'     => '',
             ),
             'dhl_client_key'                => array(
-                'title'       => __( 'Client Key', 'pr-shipping-dhl' ),
+                'title'       => __( 'Application Key', 'pr-shipping-dhl' ),
                 'type'        => 'text',
                 'default'     => '',
             ),
@@ -91,7 +91,7 @@ class PR_DHL_WC_Method_Freight_Post extends WC_Shipping_Method {
                 'label'       => __( 'Enable Sandbox Mode', 'pr-shipping-dhl' ),
                 'default'     => 'no',
                 'description' => __(
-                    'Please, tick here if you want to test the plug-in installation against the Deutsche Post Sandbox Environment. Labels generated via Sandbox cannot be used for shipping and you need to enter your client ID and client secret for the Sandbox environment instead of the ones for production!',
+                    'Please, tick here if you want to test the plug-in installation against the DHL Freight (Sweden) sandbox environment. Labels generated via Sandbox cannot be used for shipping.',
                     'pr-shipping-dhl'
                 ),
                 'desc_tip'    => true,
@@ -103,7 +103,7 @@ class PR_DHL_WC_Method_Freight_Post extends WC_Shipping_Method {
                 'default'     => 'yes',
                 'description' => sprintf(
                     __(
-                        'A log file containing the communication to the Deutsche Post server will be maintained if this option is checked. This can be used in case of technical issues and can be found %shere%s.',
+                        'A log file containing the communication to the DHL Freight server will be maintained if this option is checked. This can be used in case of technical issues and can be found %shere%s.',
                         'pr-shipping-dhl'
                     ),
                     '<a href="' . $log_path . '" target = "_blank">',
@@ -120,7 +120,7 @@ class PR_DHL_WC_Method_Freight_Post extends WC_Shipping_Method {
                 'title'       => __( 'Enable Pickup', 'pr-shipping-dhl' ),
                 'type'        => 'checkbox',
                 'description' => __(
-                    'Enable pickup by DHL',
+                    'This should be ticked if not regular pickup is agreed with DHL. This service means that a message will be send to DHL that a parcel is ready for pickup.',
                     'pr-shipping-dhl'
                 ),
                 'desc_tip'    => true,
