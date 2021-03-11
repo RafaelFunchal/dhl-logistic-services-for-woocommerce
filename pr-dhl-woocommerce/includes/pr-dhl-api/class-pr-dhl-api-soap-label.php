@@ -609,7 +609,12 @@ class PR_DHL_API_SOAP_Label extends PR_DHL_API_SOAP implements PR_DHL_API_Label 
 
 			// EMAIL NOTIFCATION
 			$notification_email = array();
-			if ( isset( $this->args['order_details'][ 'email_notification' ] ) && ( $this->args['order_details'][ 'email_notification' ] == 'yes' || $this->args['order_details'][ 'email_notification' ] == '1' ) ) {
+			if ( ( isset( $this->args['order_details'][ 'email_notification' ] ) && 
+					( $this->args['order_details'][ 'email_notification' ] == 'yes' || $this->args['order_details'][ 'email_notification' ] == '1' ) 
+				) || 
+				( isset( $this->args['dhl_settings'][ 'email_notification' ] ) && 
+					( $this->args['dhl_settings'][ 'email_notification' ] == 'sendviatc' ) ) ) {
+				
 				$notification_email['recipientEmailAddress'] = $this->args['shipping_address']['email'];
 			}
 
@@ -988,10 +993,24 @@ class PR_DHL_API_SOAP_Label extends PR_DHL_API_SOAP implements PR_DHL_API_Label 
 					// Add an "Index" to ensure "ref" is NOT used in XML and actual values are passed instead
 					$copy_ship_order['Shipment']['ShipmentDetails']['Service']['Index'] = $sequence;
 
-					$copy_ship_order['Shipment']['Shipper']['Index'] = $sequence;
-					$copy_ship_order['Shipment']['Shipper']['Address']['Origin']['Index'] = $sequence;
+					if ( isset( $copy_ship_order['Shipment']['Shipper'] ) ) {
+						$copy_ship_order['Shipment']['Shipper']['Index'] = $sequence;
+						$copy_ship_order['Shipment']['Shipper']['Address']['Origin']['Index'] = $sequence;
+					}
+					
 					$copy_ship_order['Shipment']['Receiver']['Index'] = $sequence;
-					$copy_ship_order['Shipment']['Receiver']['Address']['Origin']['Index'] = $sequence;
+					if ( isset( $copy_ship_order['Shipment']['Receiver']['Address']['Origin'] ) ) {
+						$copy_ship_order['Shipment']['Receiver']['Address']['Origin']['Index'] = $sequence;
+					}
+
+					if ( isset( $copy_ship_order['Shipment']['Receiver']['Packstation']['Origin'] ) ) {
+						$copy_ship_order['Shipment']['Receiver']['Packstation']['Origin']['Index'] = $sequence;
+					}
+
+					if ( isset( $copy_ship_order['Shipment']['Receiver']['Postfiliale']['Origin'] ) ) {
+						$copy_ship_order['Shipment']['Receiver']['Postfiliale']['Origin']['Index'] = $sequence;
+					}
+					
 
 					if ( isset( $this->args['order_details']['return_address_enabled'] ) && ( $this->args['order_details']['return_address_enabled'] == 'yes' ) ) {
 						$copy_ship_order['Shipment']['ReturnReceiver']['Index'] = $sequence;

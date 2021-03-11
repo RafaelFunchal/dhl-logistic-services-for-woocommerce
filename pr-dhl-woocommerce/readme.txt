@@ -5,7 +5,7 @@ Tags: DPDHL, original DHL, DHL, DHL eCommerce, DHL express, DHL Parcel NL, DHL P
 Requires at least: 4.1
 Requires PHP: 5.6
 Tested up to: 5.6
-Stable tag: 2.4.4
+Stable tag: 2.5.3
 WC requires at least: 3.0
 WC tested up to: 4.7
 License: GPLv2 or later
@@ -80,6 +80,25 @@ Click [here](www.dhl.com/faqs) for our FAQs or check out our [integration page](
 
 
 == Changelog ==
+ 
+= 2.5.3 =
+* DHL Parcel: Updated to use the newest version of the ServicePoint Locator
+* DHL Parcel: Improved automatic search of the closest ServicePoint to filter on last mile
+* DHL Parcel: Added filters to bulk redirects for developers to customize
+* DHL Parcel: Fixed an issue where conditionally disabled shipping methods were not applied to delivery times
+
+= 2.5.2 =
+* DHL Paket: Fix, if "Send Customer Email" setting is set to "Terms & Conditions", send DHL notification email
+* DHL Paket: Disable tracking pixel on frontend
+
+= 2.5.1 =
+* Deutsche Post: Fix, if an ordered item value is 0, set product price to avoid error
+
+= 2.5 =
+* DHL eCommerce Asia: Add Closeout manifest bulk action
+* DHL Paket: Add Sandbox mode to the plugin
+* DHL Paket: Add services outside Germany; Additional insurance, Premium, Bulk Goods, Email Notification
+* DHL Paket: Fix shipment reference and multiple packages bug
 
 = 2.4.4 =
 * DHL Paket: Remove 'GB' from EU countries, to force customs fields to display
