@@ -9,6 +9,11 @@ span.wc_dhl_error {
 	float:right;
 }
 
+ul.wc_dhl_error{
+	list-style-type: disc;
+	padding-left:20px;
+}
+
 .dhl_connection_succeeded {
 	color: #008000;
 	margin-left: 10px;
@@ -59,4 +64,36 @@ span.wc_dhl_error {
 	background-image: linear-gradient(#fc0 50%,rgba(255,204,0,0));
 	background-size: auto 36px;
 	background-repeat:repeat-x;
+}
+
+
+.dhl-total-packages #pr_dhl_total_packages {
+  width: 100px !important;
+  margin-top: -7px;
+  margin-left: 5px;
+}
+
+p.dhl-total-packages > label {
+  padding-bottom: 10px !important;
+} 
+
+.package_header_field,
+.package_item_field {
+  display: inline-block;
+  width: 45px !important;
+}
+
+.package_header_field.first,
+.package_item_field.first {
+  width: 55px !important;
+}
+
+.package_item input {
+  width: 40px !important;
+
+.dhl-awb-filter-container{
+	clear:both;
+	margin-top:9px;
+	margin-bottom:9px;
+
 }

@@ -56,6 +56,26 @@ class PR_DHL_WC_Method_Paket extends WC_Shipping_Method {
 		return ob_get_clean();
 	}
 
+	public function excluded_order_statuses(){
+
+		return array(
+			'wc-failed',
+			'wc-refunded',
+			'wc-cancelled'
+		);
+	}
+
+	public function get_order_statuses(){
+		
+		$wc_order_statuses = wc_get_order_statuses();
+
+		foreach( $this->excluded_order_statuses() as $status ){
+			unset( $wc_order_statuses[ $status ] );
+		}
+		
+		return $wc_order_statuses;
+	}
+
 	/**
 	 * Initialize integration settings form fields.
 	 *
@@ -64,6 +84,11 @@ class PR_DHL_WC_Method_Paket extends WC_Shipping_Method {
 	public function init_form_fields() {
 		$wc_shipping_methods = WC()->shipping->get_shipping_methods();
 		$wc_shipping_titles = wp_list_pluck($wc_shipping_methods, 'method_title', 'id');
+		$order_status_options = array(
+			'none' => __( 'None', 'pr-shipping-dhl'), 
+		);
+		
+		$order_status_options = array_merge( $order_status_options, $this->get_order_statuses() );
 		
 		$payment_gateway_titles = PR_DHL()->get_payment_gateways();
 
@@ -160,11 +185,26 @@ class PR_DHL_WC_Method_Paket extends WC_Shipping_Method {
 				'class'          => 'wc-enhanced-select',
 			),
 			'dhl_email_notification' => array(
-				'title'             => __( 'Email Notification', 'pr-shipping-dhl' ),
-				'type'              => 'checkbox',
-				'label'             => __( 'Enabled', 'pr-shipping-dhl' ),
-				'default'           => 'no',
-				'description'       => __( 'Please, tick here if you want the "Email Notification" service to be displayed as an option on the checkout page', 'pr-shipping-dhl' ),
+				'title'             => __( 'Send Customer Email', 'pr-shipping-dhl' ),
+				'type'              => 'select',
+				'description'             => __( 'Please select whether to send the customer\'s email to DHL or not. "Customer Confirmation" displays a confirmation on the checkout page and "Confirmed via terms & condition" assumes confirmation via the website terms & conditions.', 'pr-shipping-dhl' ),
+				'options'           => array( 
+					'no' 		=> __( 'Do not send', 'pr-shipping-dhl'), 
+					'yes' 		=> __( 'Customer confirmation', 'pr-shipping-dhl'), 
+					'sendviatc' => __( 'Confirmed via terms & condition', 'pr-shipping-dhl'), 
+				),
+				'default'           => 'sendviatc',
+				'desc_tip'          => true,
+			),
+			'dhl_phone_notification' => array(
+				'title'             => __( 'Send Customer Phone', 'pr-shipping-dhl' ),
+				'type'              => 'select',
+				'description'       => __( 'Please select whether to send the customer\'s phone to DHL or not. "Confirmed via terms & condition" assumes confirmation via the website terms & conditions.', 'pr-shipping-dhl' ),
+				'options'           => array( 
+					'no' 		=> __( 'Do not send', 'pr-shipping-dhl'), 
+					'sendviatc' => __( 'Confirmed via terms & condition', 'pr-shipping-dhl'), 
+				),
+				'default'           => 'sendviatc',
 				'desc_tip'          => true,
 			),
 			'dhl_default_age_visual' => array(
@@ -265,6 +305,38 @@ class PR_DHL_WC_Method_Paket extends WC_Shipping_Method {
 				'placeholder'		=> '',
 				'class'				=> 'wc_input_decimal'
 			),
+			'dhl_label_format' => array(
+				'title'             => __( 'Label Format', 'pr-shipping-dhl' ),
+				'type'              => 'select',
+				'description'       => __( 'Select one of the formats to generate the shipping label in.', 'pr-shipping-dhl' ),
+				'desc_tip'          => true,
+				'options'           => array( 
+					'A4' => 'A4', 
+					'910-300-700' => 'Laser printer 105 x 205 mm', 
+					'910-300-700-oZ' => 'Laser printer 105 x 205 mm (no info)', 
+					'910-300-600' => 'Thermo printer 103 x 199 mm', 
+					'910-300-610' => 'Thermo printer 103 x 202 mm', 
+					'910-300-710' => 'Laser printer 105 x 208 mm' 
+				),
+				'default' 			=> '910-300-700',
+				'class'				=> 'wc-enhanced-select'
+			),
+			'dhl_add_logo' => array(
+				'title'             => __( 'Logo', 'pr-shipping-dhl' ),
+				'type'              => 'checkbox',
+				'label'             => __( 'Add Logo', 'pr-shipping-dhl' ),
+				'default'           => 'no',
+				'description'       => __( 'The logo will be added from your DHL dashboard settings.', 'pr-shipping-dhl' ),
+				'desc_tip'          => true,
+			),
+			'dhl_shipper_reference' => array(
+				'title'             => sprintf( __( 'Shipper Reference', 'pr-shipping-dhl' ), $weight_units),
+				'type'              => 'text',
+				'description'       => __( 'Add shipper reference.', 'pr-shipping-dhl' ),
+				'desc_tip'          => false,
+				'default'           => '',
+				'placeholder'		=> '',
+			),
 			'dhl_tracking_note' => array(
 				'title'             => __( 'Tracking Note', 'pr-shipping-dhl' ),
 				'type'              => 'checkbox',
@@ -288,6 +360,16 @@ class PR_DHL_WC_Method_Paket extends WC_Shipping_Method {
 				'desc_tip'          => true,
 				'default'           => 'no',
 				'class'				=> ''
+			),
+			'dhl_create_label_on_status' => array(
+				'title'             => __( 'Create Label on Status', 'pr-shipping-dhl' ),
+				'type'              => 'select',
+				'label' 			=> __( 'Create label on specific status.', 'pr-shipping-dhl'),
+				'description'       => __( 'Select the order status.', 'pr-shipping-dhl' ),
+				'desc_tip'          => true,
+				'options'           => $order_status_options,
+				'class'				=> 'wc-enhanced-select',
+				'default'           => 'no',
 			),
 			'dhl_change_order_status_completed' => array(
 				'title'             => __( 'Order Status', 'pr-shipping-dhl' ),
@@ -316,7 +398,7 @@ class PR_DHL_WC_Method_Paket extends WC_Shipping_Method {
 				'description'       => sprintf( __( 'Your password for the DHL business customer portal. Please note the new assignment of the password to 3 (Standard User) or 12 (System User) months and test your access data in advance at %shere%s', 'pr-shipping-dhl' ), '<a href="' . PR_DHL_PAKET_BUSSINESS_PORTAL . '" target = "_blank">', '</a>' ),
 				'desc_tip'          => false,
 				'default'           => ''
-			),/*
+			),
 			'dhl_sandbox' => array(
 				'title'             => __( 'Sandbox Mode', 'pr-shipping-dhl' ),
 				'type'              => 'checkbox',
@@ -324,21 +406,28 @@ class PR_DHL_WC_Method_Paket extends WC_Shipping_Method {
 				'default'           => 'no',
 				'description'       => __( 'Please, tick here if you want to test the plug-in installation against the DHL Sandbox Environment. Labels generated via Sandbox cannot be used for shipping and you need to enter your client ID and client secret for the Sandbox environment instead of the ones for production!', 'pr-shipping-dhl' ),
 				'desc_tip'          => true,
-			),*/
+			),
+			'dhl_api_sandbox_user' => array(
+				'title'             => __( 'Sandbox Username', 'pr-shipping-dhl' ),
+				'type'              => 'text',
+				'description'       => sprintf( __( 'Your sandbox username is the same as for the DHL developer portal. You can create an account %shere%s.', 'pr-shipping-dhl' ), '<a href="' . PR_DHL_PAKET_DEVELOPER_PORTAL . '" target = "_blank">', '</a>' ),
+				'desc_tip'          => false,
+				'default'           => ''
+			),
+			'dhl_api_sandbox_pwd' => array(
+				'title'             => __( 'Sandbox Password', 'pr-shipping-dhl' ),
+				'type'              => 'password',
+				'description'       => sprintf( __( 'Your sandbox password is the same as for the DHL developer portal. You can create an account %shere%s.', 'pr-shipping-dhl' ), '<a href="' . PR_DHL_PAKET_DEVELOPER_PORTAL . '" target = "_blank">', '</a>' ),
+				'desc_tip'          => false,
+				'default'           => ''
+			),
 			'dhl_debug' => array(
 				'title'             => __( 'Debug Log', 'pr-shipping-dhl' ),
 				'type'              => 'checkbox',
 				'label'             => __( 'Enable logging', 'pr-shipping-dhl' ),
 				'default'           => 'no',
 				'description'       => sprintf( __( 'A log file containing the communication to the DHL server will be maintained if this option is checked. This can be used in case of technical issues and can be found %shere%s.', 'pr-shipping-dhl' ), '<a href="' . $log_path . '" target = "_blank">', '</a>' )
-			),
-			'dhl_pixel_tracking' => array(
-				'title'             => __( 'Tracking', 'pr-shipping-dhl' ),
-				'type'              => 'checkbox',
-				'label'             => __( 'Enable tracking', 'pr-shipping-dhl' ),
-				'default'           => 'yes',
-				'description'       => __( 'This allows DHL to anomously track whether the preferred services are being used on the shop or not.' )
-			),
+			)
 		);
 
 		$base_country_code = PR_DHL()->get_base_country();
@@ -834,6 +923,31 @@ class PR_DHL_WC_Method_Paket extends WC_Shipping_Method {
 	 */
 	public function validate_dhl_display_google_maps_field( $key ) {
 		return $this->validate_location_enabled_field( $key, __( 'Google Maps', 'pr-shipping-dhl' ) );
+	}
+
+	/**
+	 * Validate the logo enabled field
+	 * @see validate_settings_fields()
+	 */
+	public function validate_dhl_add_logo_field( $key ) {
+		
+		if ( ! isset( $_POST[ $this->plugin_id . $this->id . '_' . $key ] ) ) {
+			return 'no';
+		}
+
+		// Verify shipper reference set
+		$shipper_reference = $_POST[ $this->plugin_id . $this->id . '_dhl_shipper_reference' ];
+		
+		if ( empty( $shipper_reference ) ) {
+
+			$error_message = __('In order to use logo, you need to set a shipper reference first.', 'pr-shipping-dhl');	
+			
+			echo $this->get_message( $error_message );
+			
+			return 'no';
+		}
+
+		return 'yes';
 	}
 
 	/**

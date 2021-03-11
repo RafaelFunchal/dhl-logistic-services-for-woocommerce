@@ -4,10 +4,10 @@ Donate link:
 Tags: DPDHL, original DHL, DHL, DHL eCommerce, DHL express, DHL Parcel NL, DHL Parcel Benelux, DHL Parcel Luxembourg, DHL Paket Germany, WooCommerce, Woocom, Woo Commerce, Shipping, shiping, label creation, label printing, shipping rates, DHL Paket
 Requires at least: 4.1
 Requires PHP: 5.6
-Tested up to: 5.2
-Stable tag: 1.6.9
-WC requires at least: 2.6.14
-WC tested up to: 4.0
+Tested up to: 5.6
+Stable tag: 2.5.3
+WC requires at least: 3.0
+WC tested up to: 4.7
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -16,18 +16,22 @@ The official DHL for WooCommerce plugin allows you to automate your e-commerce o
 
 == Description ==
 
-DHL’s official extension for WooCommerce on Wordpress. Manage your national and international shipments easily.  The “DHL for WooCommerce” – plugin is compatible with (whether the plugin is available in your country see [here](https://www.logistics.dhl/content/dam/dhl/local/global/dhl-ecommerce/images/text-generic-1592x896/g0-integration-3pv-wooocommerce-00.web.796.448.jpg "Global DHL service coverage within WooCommerce").):
+DHL’s official extension for WooCommerce on Wordpress. Manage your national and international shipments easily.  The “DHL for WooCommerce” – plugin is compatible with the following DHL service offerings depending on your origin country:
 * DHL Paket (Germany)
 * DHL Parcel (Benelux)
-* Deutsche Post International 
+* Deutsche Post International (all European countries)
+* DHL eCommerce Asia (AU, CN, HK, IN, VN, TH, SG, MY)
+
+For all countries which are not mentioned here we are working on further enhancements which will be added soon. 
 
 
 == Features ==
 
+1. NEW: Ship your orders with **DHL Warenpost** in Germany.
 1. Fast and easy **label creation** of your national and international orders.
 1. Automatically receive a **tracking code** for each label.
 1. Use **additional delivery services** as e.g. the visual check of age available via the API of DHL Paket or Cash on delivery in selected countries. 
-1. Offer **Preferred Delivery Options** to your customers via “Wunschpaket”. The customer has the opportunity to select a specific time and date for his delivery.
+1. Offer **Preferred Delivery Options** to your customers via “Wunschpaket”. The customer has the opportunity to select a specific time and date for his delivery or an alternative delivery location e.g. his preferred neighbour.
 1. **Customization** Enable/disable or edit the names of services and set up the handling cost for each DHL shipping service.
 1. Experience **premium support**, timely compatibility updates and bug fixes.
 1. The **“print only if codeable”** – option you can activate in the DHL settings will check whether the address is correct or not before generating the label.
@@ -40,10 +44,10 @@ DHL’s official extension for WooCommerce on Wordpress. Manage your national an
 
 Based on your sender country and shipping preference, different access credentials for **DHL Paket and DHL Parcel Europe** are required for the configuration: 
 
-**DHL Paket for Germany** log in with your business customer portal credentials. (not a customer yet? Click [here](https://www.dhl.de/en/geschaeftskunden/paket/kunde-werden/angebot-dhl-geschaeftskunden-online.html) for **DHL Paket**)
+**DHL Paket for Germany**: Log in with your business customer portal credentials. (not a customer yet? Click [here](https://www.dhl.de/en/geschaeftskunden/paket/kunde-werden/angebot-dhl-geschaeftskunden-online.html) for **DHL Paket**)
 
-**DHL Parcel for Benelux**, please self-generate your API credentials with your business customer portal account.  (not a customer yet? Click [here](https://www.dhlparcel.nl/en/get-quote) for **DHL Parcel Benelux**).  
-**Deutsche Post International**: ask your sales contact for credentials for this plugin. (not a customer yet? Click [here](https://www.deutschepost.com/en/business-customers/contact/email.html)).
+**DHL Parcel for Benelux**: Please self-generate your API credentials with your business customer portal account.  (not a customer yet? Click [here](https://www.dhlparcel.nl/en/get-quote) for **DHL Parcel Benelux**).  
+**Deutsche Post International for Europe**: ask your sales contact for credentials for this plugin. (not a customer yet? Click [here](https://www.deutschepost.com/en/business-customers/contact/email.html)).
 
 == Installation & Configuration ==
 
@@ -51,7 +55,7 @@ Based on your sender country and shipping preference, different access credentia
 1. Activate the plugin through the 'Plugins' screen in WordPress.
 1. Go to WooCommerce-->Settings->Shipping and select the upper DHL unit (depending on your home country this is DHL Paket, DHL (Parcel) for WooCommerce  or Deutsche Post) to configure the plugin.
 
-...for **DHL Paket (Germany)**: you need your EKP number (10 digits) and add the participation numbers to the respective products available (you will find the participation numbers in the DHL business customer portal).
+...for **DHL Paket (Germany)**: you need your EKP number (10 digits) and add the participation numbers (2 digits) to the respective products available (you will find the participation numbers in the DHL business customer portal).
 ...for **DHL Parcel Europe (Benelux)**: you need your self-generated API credentials (UserID and Key). Push the “Test connection” and the fields below will be prefilled automatically. 
 ...for **Deutsche Post International**: you need your customer account number (EKP) and API credentials.
 
@@ -76,6 +80,124 @@ Click [here](www.dhl.com/faqs) for our FAQs or check out our [integration page](
 
 
 == Changelog ==
+ 
+= 2.5.3 =
+* DHL Parcel: Updated to use the newest version of the ServicePoint Locator
+* DHL Parcel: Improved automatic search of the closest ServicePoint to filter on last mile
+* DHL Parcel: Added filters to bulk redirects for developers to customize
+* DHL Parcel: Fixed an issue where conditionally disabled shipping methods were not applied to delivery times
+
+= 2.5.2 =
+* DHL Paket: Fix, if "Send Customer Email" setting is set to "Terms & Conditions", send DHL notification email
+* DHL Paket: Disable tracking pixel on frontend
+
+= 2.5.1 =
+* Deutsche Post: Fix, if an ordered item value is 0, set product price to avoid error
+
+= 2.5 =
+* DHL eCommerce Asia: Add Closeout manifest bulk action
+* DHL Paket: Add Sandbox mode to the plugin
+* DHL Paket: Add services outside Germany; Additional insurance, Premium, Bulk Goods, Email Notification
+* DHL Paket: Fix shipment reference and multiple packages bug
+
+= 2.4.4 =
+* DHL Paket: Remove 'GB' from EU countries, to force customs fields to display
+
+= 2.4.3 =
+* DHL Paket: Fix 'streetName' soap error for Postfiliale address
+
+= 2.4.2 =
+* DHL Paket: Fix 'streetName' soap error for Packstation address
+
+= 2.4.1 =
+* DHL Paket: Fix array illegal offset issue i.e. 'tracking_number' 
+
+= 2.4 =
+* DHL Paket: Add support for multiple packages per order
+* DHL Paket: Add settings for sending email and phone to DHL
+* DHL Paket: Add invoice field to be added on customs forms for cross border packages
+* DHL Paket: Add product bulk edit for HS code & Manufacturer
+* DHL Paket: Fix zip code bug being required e.g. Hong Kong
+* DHL Paket: Add validation on shipper reference field when logo setting is checked
+* DHL Paket: Flush rewrite rules to avoid manually doing it
+* Deutsche Post: Add Sender and Importer customs reference fields
+* Deutsche Post: Round grams to nearest integer 
+
+= 2.3 =
+* Deutsche Post: Add "Paket Priority"
+* Deutsche Post: Add AWB copy count option
+* Deutsche Post: Add product options; country of origin, HS code and customs description
+* Deutsche Post: Fixed non-EU labels merging with EU labels
+* Deutsche Post: Fixed “contentpiecevalue” to include quantity
+ 
+= 2.2.10 =
+* DHL Parcel: Fixed an issue where the DPI module was not loading on certain pages
+ 
+= 2.2.9 =
+* DHL Parcel: Fixed an issue with certain settings not being able to save with certain themes
+
+= 2.2.8 =
+* DHL: Fix registration email issue, by confirming is WC_Order
+* DHL Paket: Fix wrong key "dhl_default_identcheck_dob"
+
+= 2.2.7 =
+* DHL Paket: Fix exclusion of transfer days issue in German language
+
+= 2.2.6 =
+* DHL Paket: Added {pr_dhl_tracking_note} replace placeholder for WC emails. This adds the tracking note within an email. 
+* DHL Paket: Added [pr_dhl_tracking_note order_id="12345"] shortcode to display tracking note info for a given order id.
+* DHL Paket: Added [pr_dhl_tracking_link order_id="12345"] shortcode to display tracking link for a given order id.
+* DHL Paket: Add spacing for tracking note display.
+* DHL Paket: Ensure only shop managers can download label.
+* DHL Paket: Modify label format names
+* DHL Paket: Default label format to 910-300-700 (Laser printer 105 x 205 mm)
+
+= 2.2.5 =
+* DHL Parcel: Added a fallback notice for switching between DHL Parcel and Deutsche Post International
+ 
+= 2.2.4 =
+* DHL Parcel: Improved mailpost bulk processing
+
+= 2.2.3 =
+* DHL Parcel: Updated Mopinion code to include language setting
+* DHL Parcel: Removed shortcode for tracking information to prevent errors
+
+= 2.2.2 =
+* DHL Parcel: Added a shortcode for tracking information
+* DHL Parcel: Added additional meta data of preferred delivery date for third party exports
+* DHL Parcel: Improved PDFMerger loading
+* DHL Parcel: Fixed an issue with multiple warnings showing in admin
+* DHL Parcel: Updated feedback system from Usabilla to Mopinion
+
+= 2.2.1 =
+* DHL Parcel: Fixed an issue with warnings when loading settings
+
+= 2.2.0 =
+* DHL Parcel: Enabled Austria as shipping country
+* DHL Parcel: Added a setting to show the selected ServicePoint information in e-mails
+* DHL Parcel: Added requirements and visual indicators to enable Same Day delivery so it works without enabling delivery times
+* DHL Parcel: Added additional meta data for third party exports
+* DHL Parcel: Added a dynamic notification to switch between Deutsche Post International and DHL Parcel
+* DHL Parcel: Updated address parsing to support addresses starting with numbers
+* DHL Parcel: Fixed an issue where limiting DHL methods didn't work if none were selected
+* DHL Parcel: Fixed correct printer responses being sent as error reports
+* DHL Parcel: Fixed an issue with non-default price decimals not being handled correctly
+* DHL Parcel: Removed sending error reports when credentials not configured and still empty
+
+= 2.1.0 =
+* DHL Paket: Add "Warenpost" DHL product
+* DHL Paket: Enable logo addition via customer portal "Shipper Reference" setting
+* DHL Paket: Add label format setting
+* DHL Paket: Add setting to automatically generate the label on a specific order status
+* DHL Paket: Add WordPress filter to relocate email notifcation on checkout, called "pr_shipping_dhl_email_notification_position"
+* DHL Paket: Bug fix when address number is at the beginning in "address 1" for addresses outside of Germany
+* DHL Paket: Bug fix when tracking link is empty do not add any text to email
+
+= 2.0.0 =
+* DHL eCommerce: New API integration for Asia, specifically; SG, HK, TH, CN, MY, VN, AU, IN
+* DHL eCommerce: Include support for value added services; COD, Insurance and OBOX.
+* DHL eCommerce: Remove old API integration for Asia and North America
+* Deutsche Post: Suppress Waybill email to end client
 
 = 1.7.0 =
 * DHL Paket: Remove "Preferred Time" service
