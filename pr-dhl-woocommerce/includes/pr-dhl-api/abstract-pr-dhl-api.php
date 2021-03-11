@@ -21,7 +21,7 @@ abstract class PR_DHL_API {
 		return false;
 	}
 
-	public function is_dhl_ecomm( ) {
+	public function is_dhl_ecs_asia( ) {
 		return false;
 	}
 
