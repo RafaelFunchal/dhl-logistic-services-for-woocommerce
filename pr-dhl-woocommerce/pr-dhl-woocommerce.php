@@ -346,10 +346,10 @@ class PR_DHL_WC {
 				$shipping_method['pr_dhl_paket'] = $pr_dhl_ship_meth;
 			} elseif( $dhl_obj->is_dhl_ecs_us() ) {
 				$pr_dhl_ship_meth = 'PR_DHL_WC_Method_eCS_US';
-				$shipping_method['pr_dhl_ecs'] = $pr_dhl_ship_meth;
+				$shipping_method['pr_dhl_ecs_us'] = $pr_dhl_ship_meth;
 			} elseif( $dhl_obj->is_dhl_ecs_asia() ) {
 				$pr_dhl_ship_meth = 'PR_DHL_WC_Method_eCS_Asia';
-				$shipping_method['pr_dhl_ecomm'] = $pr_dhl_ship_meth;
+				$shipping_method['pr_dhl_ecs_asia'] = $pr_dhl_ship_meth;
 			} elseif( $dhl_obj->is_dhl_deutsche_post() ) {
 				$pr_dhl_ship_meth = 'PR_DHL_WC_Method_Deutsche_Post';
 				$shipping_method['pr_dhl_dp'] = $pr_dhl_ship_meth;
@@ -769,7 +769,7 @@ class PR_DHL_WC {
         try {
 			$dhl_obj = $this->get_dhl_factory();
 			
-			if( $dhl_obj->is_dhl_ecomm() ) {
+			if( $dhl_obj->is_dhl_ecs_asia() ) {
 				if ( empty( $states['VN'] ) ) {
 					include( PR_DHL_PLUGIN_DIR_PATH . '/states/VN.php' );
 				}
